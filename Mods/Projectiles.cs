@@ -140,7 +140,7 @@ namespace iiMenu.Mods
         }
 
         public static bool friendSided;
-        public static float friendProjectileScale = 1f;
+        public static int friendProjectileScale = 1;
         public static void FriendProjectileScale(bool positive = true)
         {
             if (positive)
@@ -148,93 +148,81 @@ namespace iiMenu.Mods
             else
                 friendProjectileScale -= 1;
 
-            if (friendProjectileScale > 10)
+            if (friendProjectileScale > 5)
                 friendProjectileScale = 1;
-            if (friendProjectileScale < 0)
-                friendProjectileScale = 10;
+            if (friendProjectileScale < 1)
+                friendProjectileScale = 5;
 
             Buttons.GetIndex("Friend Projectile Scale").overlapText = "Friend Projectile Scale <color=grey>[</color><color=green>" + friendProjectileScale + "</color><color=grey>]</color>";
         }
-        public static void LaunchFriendProjectile(object[] data)
+        public static void LaunchLocalProjectile(Vector3 position, Vector3 velocity, int projectileType, int index, bool overrideColor, Color32 color, int scale, SnowballThrowable throwable, VRRig rig)
         {
-            NetPlayer sender = (NetPlayer)data[2];
-            VRRig senderRig = sender.VRRig();
-            object[] projectileData = (object[])data[1];
-            Vector3 position = (Vector3)projectileData[0];
-            Vector3 velocity = (Vector3)projectileData[1];
-            int projectileType = (int)projectileData[2];
-            int index = (int)projectileData[3];
-            bool overrideColor = (bool)projectileData[4];
-
-            byte r = (byte)projectileData[5];
-            byte g = (byte)projectileData[6];
-            byte b = (byte)projectileData[7];
-            byte a = (byte)projectileData[8];
-
-            float scale = Mathf.Clamp((float)projectileData[9], 1f, 10f);
-
-            Color32 color32 = new Color32(r, g, b, a);
-
-            if (projectileType == 0)
+            try
             {
-                ProjectileWeapon weapon = senderRig.projectileWeapon;
-                if (weapon.IsNotNull())
+                if (projectileType == 0)
                 {
-                    GameObject go = ObjectPools.instance.Instantiate(PoolUtils.GameObjHashCode(weapon.projectilePrefab), true);
-                    SlingshotProjectile projectile = go.GetComponent<SlingshotProjectile>();
-                    projectile.Launch(position, velocity, null, false, false, index, scale, false, color32);
-                }
-            }
-            else
-            {
-                int projectileHash = projectileType == 1 ? senderRig.myBodyDockPositions.GetLeftHandThrowable().GetComponent<SnowballThrowable>().ProjectileHash : projectileType == 2 ? senderRig.myBodyDockPositions.GetRightHandThrowable().GetComponent<SnowballThrowable>().ProjectileHash : 0;
-                GameObject go = ObjectPools.instance.Instantiate(projectileHash, true);
-                SlingshotProjectile projectile = go.GetComponent<SlingshotProjectile>();
-
-                projectile.Launch(position, velocity, null, false, false, index, scale, false, color32);
-            }
-        }
-
-        public static void BetaFireProjectile(string projectileName, Vector3 position, Vector3 velocity, Color color, RaiseEventOptions options = null, bool bypassTeleport = false)
-        {
-            color.a = 1f;
-
-            if (velocity.magnitude > 9999f)
-                velocity = velocity.normalized * 9999f;
-
-            options ??= new RaiseEventOptions
-            {
-                Receivers = ReceiverGroup.All
-            };
-
-            SnowballThrowable Throwable = GetProjectile(projectileName);
-
-            if (projectileName != "SlingshotProjectile")
-            {
-                if (Throwable == null)
-                    return;
-
-                if (!Throwable.gameObject.activeSelf)
-                {
-                    Throwable.SetSnowballActiveLocal(true);
-                    Throwable.transform.position = GorillaTagger.Instance.leftHandTransform.position;
-                    Throwable.transform.rotation = GorillaTagger.Instance.leftHandTransform.rotation;
-
-                    if (Buttons.GetIndex("Random Projectile").enabled)
-                        CoroutineManager.instance.StartCoroutine(DisableProjectile(Throwable));
-                    else
+                    ProjectileWeapon weapon = rig.projectileWeapon;
+                    if (weapon.IsNotNull())
                     {
-                        if (DisableCoroutine != null)
-                            CoroutineManager.instance.StopCoroutine(DisableCoroutine);
-
-                        DisableCoroutine = CoroutineManager.instance.StartCoroutine(DisableProjectile(Throwable));
+                        GameObject go = ObjectPools.instance.Instantiate(weapon.projectilePrefab, true);
+                        SlingshotProjectile projectile = go.GetComponent<SlingshotProjectile>();
+                        projectile.Launch(position, velocity, null, false, false, index, scale, overrideColor, color);
                     }
                 }
+                else
+                {
+                    GameObject go = ObjectPools.instance.Instantiate(throwable.projectilePrefab, true);
+                    SlingshotProjectile projectile = go.GetComponent<SlingshotProjectile>();
+                    projectile.Launch(position, velocity, null, false, false, index, scale, overrideColor, color);
+                }
             }
-
-            if (Time.time > projDebounce)
+            catch (Exception e)
             {
-                try
+                LogManager.LogError($"Friend Projectile error: {e.Message}. Full exception:\n{e}");
+            } 
+        }
+
+        public static bool clientSided;
+        public static void BetaFireProjectile(string projectileName, Vector3 position, Vector3 velocity, Color color, RaiseEventOptions options = null, bool bypassTeleport = false)
+        {
+            try
+            {
+                color.a = 1f;
+
+                if (velocity.magnitude > 9999f)
+                    velocity = velocity.normalized * 9999f;
+
+                options ??= new RaiseEventOptions
+                {
+                    Receivers = ReceiverGroup.All
+                };
+
+                SnowballThrowable Throwable = GetProjectile(projectileName);
+
+                if (projectileName != "SlingshotProjectile")
+                {
+                    if (Throwable == null)
+                        throw new Exception("Throwable is null");
+
+                    if (!Throwable.gameObject.activeSelf)
+                    {
+                        Throwable.SetSnowballActiveLocal(true);
+                        Throwable.transform.position = GorillaTagger.Instance.leftHandTransform.position;
+                        Throwable.transform.rotation = GorillaTagger.Instance.leftHandTransform.rotation;
+
+                        if (Buttons.GetIndex("Random Projectile").enabled)
+                            CoroutineManager.instance.StartCoroutine(DisableProjectile(Throwable));
+                        else
+                        {
+                            if (DisableCoroutine != null)
+                                CoroutineManager.instance.StopCoroutine(DisableCoroutine);
+
+                            DisableCoroutine = CoroutineManager.instance.StartCoroutine(DisableProjectile(Throwable));
+                        }
+                    }
+                }
+
+                if (Time.time > projDebounce)
                 {
                     if (Vector3.Distance(GorillaTagger.Instance.bodyCollider.transform.position, position) > 3.9f && !bypassTeleport)
                     {
@@ -264,7 +252,7 @@ namespace iiMenu.Mods
 
                     if (projectileName.Contains(SnowballName))
                     {
-                        int scale = Overpowered.snowballScale;
+                        int scale = friendSided ? Math.Max(Overpowered.snowballScale, friendProjectileScale) : Overpowered.snowballScale;
                         GrowingSnowballThrowable GrowingSnowball = Throwable as GrowingSnowballThrowable;
 
                         int index = Overpowered.GetProjectileIncrement(position, velocity, Throwable.transform.lossyScale.x);
@@ -276,7 +264,7 @@ namespace iiMenu.Mods
                             slingshotProjectile.Launch(position, velocity, NetworkSystem.Instance.LocalPlayer, false, false, index, scale, true, color);
                         }
 
-                        if (PhotonNetwork.InRoom && !Buttons.GetIndex("Client Sided Projectiles").enabled)
+                        if (PhotonNetwork.InRoom && !clientSided)
                         {
                             if (friendSided)
                             {
@@ -321,49 +309,55 @@ namespace iiMenu.Mods
                     }
                     else
                     {
-                        if (PhotonNetwork.InRoom && !Buttons.GetIndex("Client Sided Projectiles").enabled)
+                        if (NetworkSystem.Instance.InRoom || clientSided)
                         {
                             int index = Overpowered.GetProjectileIncrement(position, velocity, Throwable.transform.lossyScale.x);
 
                             Color32 color32 = color;
 
-                            object[] projectileSendData = new object[9];
-                            projectileSendData[0] = position;
-                            projectileSendData[1] = velocity;
-                            projectileSendData[2] = projectileName == "SlingshotProjectile" ? 0 : (projectileName.ToLower().Contains("left") ? 1 : 2);
-                            projectileSendData[3] = index;
-                            projectileSendData[4] = true;
-                            projectileSendData[5] = color32.r;
-                            projectileSendData[6] = color32.g;
-                            projectileSendData[7] = color32.b;
-                            projectileSendData[8] = color32.a;
-
-                            object[] sendEventData = new object[3];
-                            if (friendSided)
+                            int projectileSource = projectileName == "SlingshotProjectile" ? 0 : (projectileName.ToLower().Contains("left") ? 1 : 2);
+                            List<object> projectileSendData = new List<object>
                             {
-                                projectileSendData[9] = friendProjectileScale;
-                                sendEventData[0] = "sendProjectile";
-                                sendEventData[1] = projectileSendData;
-                                sendEventData[2] = NetworkSystem.Instance.LocalPlayer;
+                                position,
+                                velocity,
+                                projectileSource,
+                                index,
+                                true,
+                                color32.r,
+                                color32.g,
+                                color32.b,
+                                color32.a
+                            };
+
+                            List<object> sendEventData = new List<object>();
+                            bool launchLocally = (friendSided || clientSided) && showSelf;
+                            if (launchLocally)
+                            {
+                                projectileSendData.Add(friendProjectileScale);
+                                projectileSendData.Add(Throwable);
+                                sendEventData.Add("sendProjectile");
+                                sendEventData.Add(projectileSendData.ToArray());
                             } else
                             {
-                                sendEventData[0] = NetworkSystem.Instance.ServerTimestamp;
-                                sendEventData[1] = 0;
-                                sendEventData[2] = projectileSendData;
-                            }
+                                sendEventData.Add(NetworkSystem.Instance.ServerTimestamp);
+                                sendEventData.Add(0);
+                                sendEventData.Add(projectileSendData.ToArray());
+                            } 
 
-                            PhotonNetwork.RaiseEvent((byte)(friendSided ? FriendManager.FriendByte : 3), sendEventData, options, SendOptions.SendUnreliable);
                             if (showSelf)
-                                LaunchFriendProjectile(sendEventData);
-                            RPCProtection();
+                                LaunchLocalProjectile(position, velocity, projectileSource, index, true, color32, friendSided ? friendProjectileScale : 1, Throwable, VRRig.LocalRig);
+                            if (!clientSided && NetworkSystem.Instance.InRoom)
+                            {
+                                PhotonNetwork.RaiseEvent(friendSided ? FriendManager.FriendByte : (byte)3, sendEventData.ToArray(), options, SendOptions.SendReliable);
+                                RPCProtection();
+                            }
                         }
                     }
                 }
-                catch (Exception e) { LogManager.LogError($"Projectile error: {e.Message}"); }
-
                 if (projDebounceType > 0f)
                     projDebounce = Time.time + (projDebounceType + (projDebounceType == 0f ? 0f : 0.01f));
             }
+            catch (Exception e) { LogManager.LogError($"Projectile error: {e.Message}. Full exception:\n{e}"); }
         }
 
         public static void BetaFireImpact(Vector3 position, Color color)
