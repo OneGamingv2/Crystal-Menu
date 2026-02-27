@@ -1,9 +1,9 @@
-﻿/*
+/*
  * ii's Stupid Menu  Mods/Visuals.cs
  * A mod menu for Gorilla Tag with over 1000+ mods
  *
  * Copyright (C) 2026  Goldentrophy Software
- * https://github.com/iiDk-the-actual/iis.Stupid.Menu
+ * https://github.com/CrystalMenu/CrystalMenu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -167,7 +167,7 @@ namespace iiMenu.Mods
         public static void ConductDebug()
         {
             string text = "";
-            text += "<color=blue><b>ii's Stupid Menu </b></color>" + PluginInfo.Version + "\\n \\n";
+            text += "<color=blue><b>Crystal Menu </b></color>" + PluginInfo.Version + "\\n \\n";
             
             string red = "<color=red>" + MathF.Floor(PlayerPrefs.GetFloat("redValue") * 255f) + "</color>";
             string green = ", <color=green>" + MathF.Floor(PlayerPrefs.GetFloat("greenValue") * 255f) + "</color>";
@@ -286,7 +286,7 @@ namespace iiMenu.Mods
             if (tt)
                 coreESPColor.a = 0.5f;
 
-            List<GameEntity> cores = ManagerRegistry.GhostReactor.GameEntityManager.entities.Where(entity => entity != null && entity.typeId == Overpowered.ObjectByName["GhostReactorCollectibleCore"]).ToList();
+            List<GameEntity> cores = ManagerRegistry.GhostReactor.GameEntityManager.entities.Where(entity => entity != null && entity.typeId == ManagerRegistry.GhostReactor.GameEntityManager.itemPrefabFactory.FirstOrDefault(p => p.Value.name == "GhostReactorCollectibleCore").Key).ToList();
             if (cores.Count <= 0)
                 return;
             
@@ -446,6 +446,88 @@ namespace iiMenu.Mods
                 regwatchShell.transform.parent.localPosition += new Vector3(0.025f, 0f, 0f);
                 regwatchShell.transform.localPosition += new Vector3(0.025f, 0f, -0.035f);
             }
+
+            CreateCustomWatchPanel();
+        }
+
+        private static GameObject customWatchPanel;
+        private static GameObject customWatchHeader;
+        private static GameObject customWatchButtonDisconnect;
+        private static GameObject customWatchButtonRandom;
+        private static TextMeshPro customWatchHeaderText;
+        private static bool customWatchPanelOpen;
+        private static bool customWatchClickLatch;
+        private static bool customWatchActionLatch;
+
+        private static void CreateCustomWatchPanel()
+        {
+            Transform watchHand = rightHand
+                ? VRRig.LocalRig.transform.Find("rig/hand.R")
+                : VRRig.LocalRig.transform.Find("rig/hand.L");
+
+            if (watchHand == null)
+                return;
+
+            customWatchPanel = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            customWatchPanel.name = "iiMenu_CustomWatchPanel";
+            customWatchPanel.transform.SetParent(watchHand, false);
+            customWatchPanel.transform.localScale = new Vector3(0.09f, 0.12f, 0.0125f);
+            customWatchPanel.transform.localPosition = new Vector3(0f, 0.015f, 0.065f);
+            customWatchPanel.transform.localRotation = Quaternion.Euler(rightHand ? 20f : -20f, rightHand ? 160f : -160f, 0f);
+            customWatchPanel.GetComponent<Renderer>().material = new Material(Shader.Find("GUI/Text Shader"));
+
+            customWatchHeader = new GameObject("Header");
+            customWatchHeader.transform.SetParent(customWatchPanel.transform, false);
+            customWatchHeaderText = customWatchHeader.AddComponent<TextMeshPro>();
+            customWatchHeaderText.font = activeFont;
+            customWatchHeaderText.alignment = TextAlignmentOptions.Center;
+            customWatchHeaderText.enableAutoSizing = true;
+            customWatchHeaderText.fontSizeMin = 0.2f;
+            customWatchHeaderText.fontSizeMax = 3f;
+            customWatchHeaderText.rectTransform.sizeDelta = new Vector2(0.15f, 0.06f);
+            customWatchHeaderText.rectTransform.localPosition = new Vector3(0f, 0.03f, -0.02f);
+            customWatchHeaderText.rectTransform.localRotation = Quaternion.identity;
+
+            customWatchButtonDisconnect = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            customWatchButtonDisconnect.name = "DisconnectButton";
+            customWatchButtonDisconnect.transform.SetParent(customWatchPanel.transform, false);
+            customWatchButtonDisconnect.transform.localScale = new Vector3(0.07f, 0.03f, 0.01f);
+            customWatchButtonDisconnect.transform.localPosition = new Vector3(0f, -0.005f, -0.005f);
+            customWatchButtonDisconnect.GetComponent<Renderer>().material = new Material(Shader.Find("GUI/Text Shader"));
+
+            TextMeshPro disconnectText = new GameObject("Text").AddComponent<TextMeshPro>();
+            disconnectText.transform.SetParent(customWatchButtonDisconnect.transform, false);
+            disconnectText.font = activeFont;
+            disconnectText.alignment = TextAlignmentOptions.Center;
+            disconnectText.text = "Disconnect";
+            disconnectText.enableAutoSizing = true;
+            disconnectText.fontSizeMin = 0.2f;
+            disconnectText.fontSizeMax = 2.5f;
+            disconnectText.rectTransform.sizeDelta = new Vector2(0.16f, 0.04f);
+            disconnectText.rectTransform.localPosition = new Vector3(0f, 0f, -0.01f);
+
+            customWatchButtonRandom = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            customWatchButtonRandom.name = "RandomButton";
+            customWatchButtonRandom.transform.SetParent(customWatchPanel.transform, false);
+            customWatchButtonRandom.transform.localScale = new Vector3(0.07f, 0.03f, 0.01f);
+            customWatchButtonRandom.transform.localPosition = new Vector3(0f, -0.045f, -0.005f);
+            customWatchButtonRandom.GetComponent<Renderer>().material = new Material(Shader.Find("GUI/Text Shader"));
+
+            TextMeshPro randomText = new GameObject("Text").AddComponent<TextMeshPro>();
+            randomText.transform.SetParent(customWatchButtonRandom.transform, false);
+            randomText.font = activeFont;
+            randomText.alignment = TextAlignmentOptions.Center;
+            randomText.text = "Join Random";
+            randomText.enableAutoSizing = true;
+            randomText.fontSizeMin = 0.2f;
+            randomText.fontSizeMax = 2.5f;
+            randomText.rectTransform.sizeDelta = new Vector2(0.16f, 0.04f);
+            randomText.rectTransform.localPosition = new Vector3(0f, 0f, -0.01f);
+
+            customWatchPanelOpen = false;
+            customWatchPanel.SetActive(false);
+            customWatchClickLatch = false;
+            customWatchActionLatch = false;
         }
 
         private static TMP_SpriteAsset _infoSpriteAsset;
@@ -554,13 +636,14 @@ namespace iiMenu.Mods
 
             Text watchTextComponent = regwatchText.GetComponent<Text>();
 
-            if (infoWatchMenuName || defaultWatch) watchTextComponent.text = "ii's Stupid Menu\n<color=grey>";
+            if (infoWatchMenuName || defaultWatch) watchTextComponent.text = "Crystal Menu\n<color=grey>";
             if (doCustomName && (infoWatchMenuName || defaultWatch))
                 watchTextComponent.text = NoRichtextTags(customMenuName) + "\n<color=grey>";
             if (!infoWatchMenuName && !defaultWatch)
                 watchTextComponent.text = "<color=grey>";
             
             if (infoWatchFPS || defaultWatch) watchText += lastDeltaTime + " FPS\n";
+            watchText += PhotonNetwork.GetPing() + " Ping\n";
             if (infoWatchTime || defaultWatch) watchText += DateTime.Now.ToString("hh:mm tt") + "\n";
             if (infoWatchCode) watchText += (PhotonNetwork.InRoom ? PhotonNetwork.CurrentRoom.Name : "Not in room") + "\n";
             if (infoWatchClip) watchText += "Clip: " + (GUIUtility.systemCopyBuffer.Length > 20 ? GUIUtility.systemCopyBuffer[..20] : GUIUtility.systemCopyBuffer) + "\n";
@@ -572,10 +655,78 @@ namespace iiMenu.Mods
                 watchTextComponent.text = watchTextComponent.text.ToLower();
             if (uppercaseMode)
                 watchTextComponent.text = watchTextComponent.text.ToUpper();
+
+            if (customWatchPanel != null)
+            {
+                bool clickInput = rightHand ? leftTrigger > 0.75f : rightTrigger > 0.75f;
+                Transform clickHand = rightHand ? GorillaTagger.Instance.leftHandTransform : GorillaTagger.Instance.rightHandTransform;
+                bool nearWatch = clickHand != null && regwatchShell != null && Vector3.Distance(clickHand.position, regwatchShell.transform.position) < 0.12f;
+
+                if (clickInput && !customWatchClickLatch && nearWatch)
+                {
+                    customWatchPanelOpen = !customWatchPanelOpen;
+                    customWatchPanel.SetActive(customWatchPanelOpen);
+                }
+                customWatchClickLatch = clickInput;
+
+                if (customWatchPanelOpen)
+                {
+                    customWatchPanel.GetComponent<Renderer>().material.color = DarkenColor(backgroundColor.GetCurrentColor(), 0.35f);
+
+                    if (customWatchHeaderText != null)
+                    {
+                        customWatchHeaderText.SafeSetFont(activeFont);
+                        customWatchHeaderText.SafeSetFontStyle(activeFontStyle);
+                        customWatchHeaderText.color = textColors[1].GetCurrentColor();
+                        customWatchHeaderText.text = $"{lastDeltaTime} FPS  {PhotonNetwork.GetPing()} Ping";
+                    }
+
+                    customWatchButtonDisconnect.GetComponent<Renderer>().material.color = buttonColors[0].GetCurrentColor();
+                    customWatchButtonRandom.GetComponent<Renderer>().material.color = buttonColors[1].GetCurrentColor();
+
+                    bool nearDisconnect = clickHand != null && Vector3.Distance(clickHand.position, customWatchButtonDisconnect.transform.position) < 0.06f;
+                    bool nearRandom = clickHand != null && Vector3.Distance(clickHand.position, customWatchButtonRandom.transform.position) < 0.06f;
+
+                    if (clickInput && !customWatchActionLatch)
+                    {
+                        if (nearDisconnect && PhotonNetwork.InRoom)
+                        {
+                            NetworkSystem.Instance.ReturnToSinglePlayer();
+                            customWatchPanelOpen = false;
+                            customWatchPanel.SetActive(false);
+                        }
+                        else if (nearRandom)
+                        {
+                            Important.JoinRandom();
+                            customWatchPanelOpen = false;
+                            customWatchPanel.SetActive(false);
+                        }
+                    }
+
+                    customWatchActionLatch = clickInput;
+                }
+                else
+                {
+                    customWatchActionLatch = false;
+                }
+            }
         }
 
-        public static void WatchOff() =>
+        public static void WatchOff()
+        {
             Object.Destroy(regwatchobject);
+            if (customWatchPanel != null)
+                Object.Destroy(customWatchPanel);
+
+            customWatchPanel = null;
+            customWatchHeader = null;
+            customWatchButtonDisconnect = null;
+            customWatchButtonRandom = null;
+            customWatchHeaderText = null;
+            customWatchPanelOpen = false;
+            customWatchClickLatch = false;
+            customWatchActionLatch = false;
+        }
 
         public static Material oldSkyMat;
         public static void DoCustomSkyboxColor()
@@ -2465,7 +2616,7 @@ namespace iiMenu.Mods
             { "GorillaShop", "GorillaShop" },
             { "Fusioned", "Fusioned" },
             { "y u lookin in here weirdo", "Malachi Menu Reborn" },
-            { "ØƦƁƖƬ", "Orbit" },
+            { "�????", "Orbit" },
             { "Atlas", "Atlas" }
         };
 

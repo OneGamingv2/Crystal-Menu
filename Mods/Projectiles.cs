@@ -3,7 +3,7 @@
  * A mod menu for Gorilla Tag with over 1000+ mods
  *
  * Copyright (C) 2026  Goldentrophy Software
- * https://github.com/iiDk-the-actual/iis.Stupid.Menu
+ * https://github.com/CrystalMenu/CrystalMenu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -139,21 +139,24 @@ namespace iiMenu.Mods
             Throwable.SetSnowballActiveLocal(false);
         }
 
-        public static bool friendSided;
-        public static int friendProjectileScale = 1;
-        public static void FriendProjectileScale(bool positive = true)
+        private static int archiveIncrement;
+        private static int GetProjectileIncrement(Vector3 Position, Vector3 Velocity, float Scale)
         {
-            if (positive)
-                friendProjectileScale += 1;
-            else
-                friendProjectileScale -= 1;
-
-            if (friendProjectileScale > 5)
-                friendProjectileScale = 1;
-            if (friendProjectileScale < 1)
-                friendProjectileScale = 5;
-
-            Buttons.GetIndex("Friend Projectile Scale").overlapText = "Friend Projectile Scale <color=grey>[</color><color=green>" + friendProjectileScale + "</color><color=grey>]</color>";
+            try
+            {
+                GameObject SlingshotProjectileGameObject = new GameObject("SlingshotProjectileHolder");
+                SlingshotProjectile SlingshotProjectile = SlingshotProjectileGameObject.AddComponent<SlingshotProjectile>();
+                int Data = ProjectileTracker.AddAndIncrementLocalProjectile(SlingshotProjectile, Velocity, Position, Scale);
+                archiveIncrement = Data;
+                UnityEngine.Object.Destroy(SlingshotProjectileGameObject);
+                return Data;
+            }
+            catch
+            {
+                LogManager.Log("Falling back to archiveIncrement");
+                archiveIncrement++;
+                return archiveIncrement;
+            }
         }
         public static void LaunchLocalProjectile(Vector3 position, Vector3 velocity, int projectileType, int index, bool overrideColor, Color32 color, int scale, SnowballThrowable throwable, VRRig rig)
         {
@@ -252,10 +255,10 @@ namespace iiMenu.Mods
 
                     if (projectileName.Contains(SnowballName))
                     {
-                        int scale = friendSided ? Math.Max(Overpowered.snowballScale, friendProjectileScale) : Overpowered.snowballScale;
+                        int scale = 0;
                         GrowingSnowballThrowable GrowingSnowball = Throwable as GrowingSnowballThrowable;
 
-                        int index = Overpowered.GetProjectileIncrement(position, velocity, Throwable.transform.lossyScale.x);
+                        int index = GetProjectileIncrement(position, velocity, Throwable.transform.lossyScale.x);
 
                         SlingshotProjectile slingshotProjectile;
                         if (showSelf)
@@ -266,52 +269,34 @@ namespace iiMenu.Mods
 
                         if (PhotonNetwork.InRoom && !clientSided)
                         {
-                            if (friendSided)
+                            PhotonNetwork.RaiseEvent(176, new object[]
                             {
-                                Color32 color32 = color;
-
-                                object[] projectileSendData = new object[8];
-                                projectileSendData[0] = "sendSnowball";
-                                projectileSendData[1] = position;
-                                projectileSendData[2] = velocity;
-                                projectileSendData[3] = color32.r;
-                                projectileSendData[4] = color32.g;
-                                projectileSendData[5] = color32.b;
-                                projectileSendData[6] = GrowingSnowball.snowballSizeLevels[scale].snowballScale;
-                                projectileSendData[7] = index;
-
-                                PhotonNetwork.RaiseEvent(FriendManager.FriendByte, projectileSendData, options, SendOptions.SendUnreliable);
-                            } else
+                                GrowingSnowball.changeSizeEvent._eventId,
+                                scale
+                            }, options, new SendOptions
                             {
-                                PhotonNetwork.RaiseEvent(176, new object[]
-                                {
-                                    GrowingSnowball.changeSizeEvent._eventId,
-                                    scale
-                                }, options, new SendOptions
-                                {
-                                    Reliability = false,
-                                    Encrypt = true
-                                });
+                                Reliability = false,
+                                Encrypt = true
+                            });
 
-                                PhotonNetwork.RaiseEvent(176, new object[]
-                                {
-                                    GrowingSnowball.snowballThrowEvent._eventId,
-                                    position,
-                                    velocity,
-                                    index
-                                }, options, new SendOptions
-                                {
-                                    Reliability = false,
-                                    Encrypt = true
-                                });
-                            }
+                            PhotonNetwork.RaiseEvent(176, new object[]
+                            {
+                                GrowingSnowball.snowballThrowEvent._eventId,
+                                position,
+                                velocity,
+                                index
+                            }, options, new SendOptions
+                            {
+                                Reliability = false,
+                                Encrypt = true
+                            });
                         }
                     }
                     else
                     {
                         if (NetworkSystem.Instance.InRoom || clientSided)
                         {
-                            int index = Overpowered.GetProjectileIncrement(position, velocity, Throwable.transform.lossyScale.x);
+                            int index = GetProjectileIncrement(position, velocity, Throwable.transform.lossyScale.x);
 
                             Color32 color32 = color;
 
@@ -330,10 +315,10 @@ namespace iiMenu.Mods
                             };
 
                             List<object> sendEventData = new List<object>();
-                            bool launchLocally = (friendSided || clientSided) && showSelf;
+                            bool launchLocally = clientSided && showSelf;
                             if (launchLocally)
                             {
-                                projectileSendData.Add(friendProjectileScale);
+                                projectileSendData.Add(1);
                                 projectileSendData.Add(Throwable);
                                 sendEventData.Add("sendProjectile");
                                 sendEventData.Add(projectileSendData.ToArray());
@@ -345,10 +330,10 @@ namespace iiMenu.Mods
                             } 
 
                             if (showSelf)
-                                LaunchLocalProjectile(position, velocity, projectileSource, index, true, color32, friendSided ? friendProjectileScale : 1, Throwable, VRRig.LocalRig);
+                                LaunchLocalProjectile(position, velocity, projectileSource, index, true, color32, 1, Throwable, VRRig.LocalRig);
                             if (!clientSided && NetworkSystem.Instance.InRoom)
                             {
-                                PhotonNetwork.RaiseEvent(friendSided ? FriendManager.FriendByte : (byte)3, sendEventData.ToArray(), options, SendOptions.SendReliable);
+                                PhotonNetwork.RaiseEvent((byte)3, sendEventData.ToArray(), options, SendOptions.SendReliable);
                                 RPCProtection();
                             }
                         }
@@ -575,11 +560,10 @@ namespace iiMenu.Mods
             if (projDebounceIndex < 0)
                 projDebounceIndex = 20;
 
-            if (projDebounceIndex < 8 && fromMenu && (!Buttons.GetIndex("Friend Sided Projectiles").enabled || !Buttons.GetIndex("Client Sided Projectiles").enabled))
+            if (projDebounceIndex < 8 && fromMenu && !Buttons.GetIndex("Client Sided Projectiles").enabled)
                 NotificationManager.SendNotification("<color=grey>[</color><color=red>WARNING</color><color=grey>]</color> Using a projectile delay lower than 0.4 could get you banned. Use at your own caution.", 5000);
 
             projDebounceType = projDebounceIndex / 20f;
-            Overpowered.SnowballSpawnDelay = Mathf.Max(projDebounceType, 0.1f);
             Buttons.GetIndex("Change Projectile Delay").overlapText = "Change Projectile Delay <color=grey>[</color><color=green>" + projDebounceType + "</color><color=grey>]</color>";
         }
 

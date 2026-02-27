@@ -3,7 +3,7 @@
  * A mod menu for Gorilla Tag with over 1000+ mods
  *
  * Copyright (C) 2026  Goldentrophy Software
- * https://github.com/iiDk-the-actual/iis.Stupid.Menu
+ * https://github.com/CrystalMenu/CrystalMenu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -321,12 +321,10 @@ namespace iiMenu.Mods
         public static void SetTagCooldown(float value)
         {
             if (!NetworkSystem.Instance.IsMasterClient || !NetworkSystem.Instance.InRoom)
-                Overpowered.LagMasterClient();
-            else
-            {
-                GorillaTagManager tagman = (GorillaTagManager)GorillaGameManager.instance;
-                tagman.tagCoolDown = value;
-            }
+                return;
+
+            GorillaTagManager tagman = (GorillaTagManager)GorillaGameManager.instance;
+            tagman.tagCoolDown = value;
         }
 
         public static float tagAuraDistance = 1.666f;

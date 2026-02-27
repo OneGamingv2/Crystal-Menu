@@ -3,7 +3,7 @@
  * A mod menu for Gorilla Tag with over 1000+ mods
  *
  * Copyright (C) 2026  Goldentrophy Software
- * https://github.com/iiDk-the-actual/iis.Stupid.Menu
+ * https://github.com/CrystalMenu/CrystalMenu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -180,7 +180,8 @@ namespace iiMenu.Mods
         }
         public static void AntiLurker()
         {
-            LurkerGhost lurker = Overpowered.Lurker;
+            LurkerGhost lurker = GetObject("Environment Objects/05Maze_PersistentObjects/2025_Halloween1_PersistentObjects/Halloween Ghosts/Lurker Ghost/GhostLurker_Prefab")?.GetComponent<LurkerGhost>();
+            if (lurker == null) return;
             if (lurker.currentState == LurkerGhost.ghostState.possess && lurker.targetPlayer == NetworkSystem.Instance.LocalPlayer)
                 lurker.ChangeState(LurkerGhost.ghostState.patrol);
         }
@@ -462,7 +463,7 @@ namespace iiMenu.Mods
                         catch { LogManager.Log("Failed to log player"); }
 
                         text += "\n====================================\n";
-                        text += "Text file generated with ii's Stupid Menu";
+                        text += "Text file generated with Crystal Menu";
                         string fileName = $"{PluginInfo.BaseDirectory}/" + player.NickName + " - Anti Moderator.txt";
 
                         File.WriteAllText(fileName, text);
@@ -506,7 +507,7 @@ namespace iiMenu.Mods
                         catch { LogManager.Log("Failed to log player"); }
 
                         text += "\n====================================\n";
-                        text += "Text file generated with ii's Stupid Menu";
+                        text += "Text file generated with Crystal Menu";
                         string fileName = $"{PluginInfo.BaseDirectory}/" + player.NickName + " - Anti Content Creator.txt";
 
                         File.WriteAllText(fileName, text);

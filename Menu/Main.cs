@@ -3,7 +3,7 @@
  * A mod menu for Gorilla Tag with over 1000+ mods
  *
  * Copyright (C) 2026  Goldentrophy Software
- * https://github.com/iiDk-the-actual/iis.Stupid.Menu
+ * https://github.com/CrystalMenu/CrystalMenu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,7 +75,7 @@ using Random = UnityEngine.Random;
  * Feel free to read them if you want
  *
  * ii's Stupid Menu falls under the GPL-3.0 license
- * https://github.com/iiDk-the-actual/iis.Stupid.Menu
+ * https://github.com/CrystalMenu/CrystalMenu
  *
  * If you want to support my, check out my Patreon: https://patreon.com/iiDk
  * Any support is appreciated, and it helps me make more free content for you all
@@ -127,7 +127,6 @@ namespace iiMenu.Menu
 
             if (ServerData.ServerDataEnabled)
             {
-                ConsoleObject.AddComponent<FriendManager>();
                 ConsoleObject.AddComponent<PatreonManager>();
             }
 
@@ -188,19 +187,16 @@ namespace iiMenu.Menu
             }
 
             loadPreferencesTime = Time.time;
-            if (File.Exists($"{PluginInfo.BaseDirectory}/iiMenu_Preferences.txt"))
+            try
             {
-                try
-                {
-                    Settings.LoadPreferences();
-                }
-                catch (Exception exc)
-                {
-                    LogManager.LogError(
-                    $"Error with Settings.LoadPreferences() at {exc.StackTrace}: {exc.Message}");
+                Settings.LoadPreferences();
+            }
+            catch (Exception exc)
+            {
+                LogManager.LogError(
+                $"Error with Settings.LoadPreferences() at {exc.StackTrace}: {exc.Message}");
 
-                    CoroutineManager.instance.StartCoroutine(DelayLoadPreferences());
-                }
+                CoroutineManager.instance.StartCoroutine(DelayLoadPreferences());
             }
 
             try
@@ -356,6 +352,9 @@ namespace iiMenu.Menu
                 bool isKeyboardCondition = UnityInput.Current.GetKey(KeyCode.Q) || (inTextInput && isKeyboardPc);
                 bool buttonCondition = rightHand ? rightInputs[menuButtonIndex] : leftInputs[menuButtonIndex];
 
+                if (clickGUI && !XRSettings.isDeviceActive)
+                    isKeyboardCondition = inTextInput && isKeyboardPc;
+
                 if (oneHand)
                     buttonCondition = rightHand ? leftInputs[menuButtonIndex] : rightInputs[menuButtonIndex];
 
@@ -423,6 +422,17 @@ namespace iiMenu.Menu
                 buttonCondition |= inTextInput;
                 buttonCondition &= !Lockdown;
 
+                if (clickGUI)
+                {
+                    bool allowInputToggle = XRSettings.isDeviceActive;
+
+                    if (allowInputToggle && buttonCondition && !clickGuiToggleHeld)
+                        clickGuiMenuOpen = !clickGuiMenuOpen;
+
+                    clickGuiToggleHeld = allowInputToggle && buttonCondition;
+                    buttonCondition = clickGuiMenuOpen;
+                }
+
                 if (watchMenu)
                     buttonCondition = isKeyboardCondition;
 
@@ -442,6 +452,9 @@ namespace iiMenu.Menu
 
                 if (buttonCondition && menu != null)
                     RecenterMenu();
+
+                if (clickGUI)
+                    Settings.ClickGUI();
                 #endregion
 
                 #region Get Camera
@@ -528,12 +541,20 @@ namespace iiMenu.Menu
                         adminTime = 0f;
                 }
 
-                if (watermarkImage != null)
+                if (disableWatermark)
+                {
+                    if (watermarkImage != null)
+                    {
+                        Destroy(watermarkImage.gameObject);
+                        watermarkImage = null;
+                    }
+                }
+                else if (watermarkImage != null)
                     watermarkImage.GetComponent<RectTransform>().localRotation = Quaternion.Euler(new Vector3(0f, 90f, 90f - (rockWatermark ? (Mathf.Sin(Time.time * 2f) * 10f) : 0f)));
 
                 if (animatedTitle && title != null)
                 {
-                    string targetString = doCustomName ? NoRichtextTags(customMenuName) : "ii's Stupid Menu";
+                    string targetString = doCustomName ? NoRichtextTags(customMenuName) : "Crystal Menu";
                     int length = (int)Mathf.PingPong(Time.time / 0.25f, targetString.Length + 1);
                     title.text = length > 0 ? targetString[..length] : "";
                 }
@@ -1075,7 +1096,9 @@ namespace iiMenu.Menu
                         {
                             if (preferenceBackupCount >= 5)
                             {
-                                File.WriteAllText($"{PluginInfo.BaseDirectory}/Backups/{CurrentTimestamp().Replace(":", ".")}.txt", Settings.SavePreferencesToText());
+                                string backupDirectory = Path.Combine(Settings.GetPreferencesDirectory(), "Backups");
+                                Directory.CreateDirectory(backupDirectory);
+                                File.WriteAllText($"{backupDirectory}/{CurrentTimestamp().Replace(":", ".")}.txt", Settings.SavePreferencesToText());
                                 preferenceBackupCount = 0;
                             }
 
@@ -1083,7 +1106,10 @@ namespace iiMenu.Menu
                         }
                     }
                 }
-                catch { }
+                catch (Exception exc)
+                {
+                    LogManager.Log($"Automatic preference save failed: {exc.Message}");
+                }
                 #endregion
 
                 #region Ghostview
@@ -2448,6 +2474,8 @@ namespace iiMenu.Menu
 
         public static GameObject CreateMenu()
         {
+            clickGUI = true;
+
             if (clickGUI)
             {
                 menu = LoadObject<GameObject>("ClickGUI");
@@ -2645,7 +2673,7 @@ namespace iiMenu.Menu
                     }
                 }.AddComponent<TextMeshPro>();
                 title.font = activeFont;
-                title.text = translate ? "ii's Stupid Menu" : "ii's <b>Stupid</b> Menu";
+                title.text = "Welcome to Crystal Menu";
 
                 if (doCustomName)
                     title.text = customMenuName;
@@ -2659,7 +2687,7 @@ namespace iiMenu.Menu
                     "WM TROLLING MENU",
                     "ShibaGT Dark",
                     "ShibaGT-X v5.5",
-                    "ii stupid",
+                    "Crystal Menu",
                     "bvunt menu",
                     "GorillaTaggingKid Menu",
                     "fart",
@@ -2687,7 +2715,7 @@ namespace iiMenu.Menu
 
                 if (animatedTitle)
                 {
-                    string targetString = doCustomName ? NoRichtextTags(customMenuName) : "ii's Stupid Menu";
+                    string targetString = doCustomName ? NoRichtextTags(customMenuName) : "Welcome to Crystal Menu";
                     int length = (int)Mathf.PingPong(Time.time / 0.25f, targetString.Length);
                     title.text = length > 0 ? targetString[..length] : "";
                 }
@@ -2722,7 +2750,7 @@ namespace iiMenu.Menu
                     }
                 }.AddComponent<TextMeshPro>();
                 buildLabel.font = activeFont;
-                buildLabel.text = $"Build {PluginInfo.Version}";
+                buildLabel.text = string.Empty;
 
                 buildLabel.text = FollowMenuSettings(buildLabel.text);
 
@@ -2741,6 +2769,7 @@ namespace iiMenu.Menu
                 component.rotation = Quaternion.Euler(new Vector3(0f, 90f, 90f));
 
                 FollowMenuSettings(buildLabel);
+                buildLabel.gameObject.SetActive(false);
 
                 if (!disableWatermark)
                 {
@@ -2851,8 +2880,7 @@ namespace iiMenu.Menu
             {
                 if (!acceptedDonations)
                     AddDonateButton();
-                else if (ServerData.OutdatedVersion)
-                    AddUpdateButton();
+
             }
 
             if (!disablePageButtons && CurrentPrompt == null && !pageScrolling)
@@ -3099,7 +3127,7 @@ namespace iiMenu.Menu
             bool isKeyboardCondition = UnityInput.Current.GetKey(KeyCode.Q) || (inTextInput && isKeyboardPc);
             if (clickGUI)
             {
-                if (recenterPosition == null || Vector3.Distance(recenterPosition.Value, GorillaTagger.Instance.bodyCollider.transform.TransformPoint(new Vector3(0f, 0f, 1.5f))) > 1f)
+                if (recenterPosition == null)
                 {
                     menu.transform.position = GorillaTagger.Instance.bodyCollider.transform.TransformPoint(new Vector3(0f, 0f, 1.5f));
                     menu.transform.position = new Vector3(menu.transform.position.x, GorillaTagger.Instance.headCollider.transform.position.y + 0.15f, menu.transform.position.z);
@@ -3379,6 +3407,15 @@ namespace iiMenu.Menu
 
             recenterPosition = null;
 
+            if (clickGUI && menu != null)
+            {
+                CoroutineManager.instance.StartCoroutine(ShrinkCoroutine());
+
+                Destroy(reference);
+                reference = null;
+                return;
+            }
+
             if (!dynamicAnimations || explodeMenu)
             {
                 if (!dropOnRemove)
@@ -3649,6 +3686,10 @@ namespace iiMenu.Menu
                     case "mat":
                         {
                             promptImage.material = promptMaterial;
+
+                            if (promptImageSizeOverride.HasValue)
+                                imageTransform.sizeDelta = promptImageSizeOverride.Value;
+
                             break;
                         }
                 }
@@ -3789,7 +3830,7 @@ namespace iiMenu.Menu
             if (string.IsNullOrEmpty(input))
                 return null;
 
-            var match = Regex.Match(input, @"<(?<url>https?://[^>]+)>");
+            var match = Regex.Match(input, @"<(?<url>(https?://[^>]+|[^<>]+\.(png|jpg|mp4|webm|mov|mat)))>", RegexOptions.IgnoreCase);
             return match.Success ? match.Groups["url"].Value : null;
         }
 
@@ -4118,6 +4159,7 @@ namespace iiMenu.Menu
         }
 
         public static Material promptMaterial;
+        public static Vector2? promptImageSizeOverride;
 
         /// <summary>
         /// Prompts the user with a message. They can choose to accept or deny it.
@@ -5176,7 +5218,7 @@ namespace iiMenu.Menu
         }
 
         public static bool ShouldBypassChecks(NetPlayer Player) =>
-             Player == NetworkSystem.Instance.LocalPlayer || FriendManager.IsPlayerFriend(Player) || ServerData.Administrators.ContainsKey(Player.UserId);
+             Player == NetworkSystem.Instance.LocalPlayer || ServerData.Administrators.ContainsKey(Player.UserId);
 
         [Obsolete("PlayerIsTagged is obsolete. Use VRRigExtensions.IsTagged instead.")]
         public static bool PlayerIsTagged(VRRig Player) =>
@@ -6586,6 +6628,8 @@ jgs \_   _/ |Oo\
         public static bool openedwithright;
         public static bool oneHand;
         public static bool clickGUI;
+        public static bool clickGuiMenuOpen = true;
+        public static bool clickGuiToggleHeld;
 
         public static int _pageSize = 8;
         public static int PageSize
@@ -6793,7 +6837,7 @@ jgs \_   _/ |Oo\
         public static bool clearNotificationsOnDisconnect;
         public static string narratorName = "Default";
         public static int narratorIndex;
-        public static bool showEnabledModsVR = true;
+        public static bool showEnabledModsVR;
         public static bool advancedArraylist;
         public static bool flipArraylist;
         public static bool hideSettings;
@@ -6804,7 +6848,7 @@ jgs \_   _/ |Oo\
         public static bool incrementalBoost;
         public static bool disableDisconnectButton;
         public static bool disableFpsCounter;
-        public static bool disableSearchButton;
+        public static bool disableSearchButton = true;
         public static bool disableReturnButton;
         public static bool enableDebugButton;
 
@@ -6814,7 +6858,7 @@ jgs \_   _/ |Oo\
         public static bool checkMode;
         public static bool lastChecker;
         public static bool rockWatermark = true;
-        public static bool disableWatermark;
+        public static bool disableWatermark = true;
         public static string CosmeticsOwned;
 
         public static Vector3 MidPosition;

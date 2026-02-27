@@ -3,7 +3,7 @@
  * A mod menu for Gorilla Tag with over 1000+ mods
  *
  * Copyright (C) 2026  Goldentrophy Software
- * https://github.com/iiDk-the-actual/iis.Stupid.Menu
+ * https://github.com/CrystalMenu/CrystalMenu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR;
 using static iiMenu.Menu.Main;
 using static iiMenu.Utilities.AssetUtilities;
 
@@ -54,10 +55,13 @@ namespace iiMenu.Menu
 
             Transform canvas = uiPrefab.transform.Find("Canvas");
             watermark = canvas.Find("Watermark").GetComponent<Image>();
+            watermark.gameObject.SetActive(false);
             versionLabel = canvas.Find("VersionLabel").GetComponent<TextMeshProUGUI>();
+            versionLabel.gameObject.SetActive(false);
             roomStatus = canvas.Find("RoomStatus").GetComponent<TextMeshProUGUI>();
             arraylist = canvas.Find("Arraylist").GetComponent<TextMeshProUGUI>();
             controlBackground = canvas.Find("ControlUI").GetComponent<Image>();
+            controlBackground.gameObject.SetActive(false);
 
             debugUI = canvas.Find("DebugUI")?.gameObject;
             debugUI.AddComponent<UIDragWindow>();
@@ -88,6 +92,8 @@ namespace iiMenu.Menu
             {
                 ChangeName(textInput.text);
             });
+
+            CreatePcClickGuiToggle(canvas);
 
             TMP_InputField inputField = debugUI.transform.Find("TextInput").gameObject.GetComponent<TMP_InputField>();
 
@@ -131,11 +137,8 @@ namespace iiMenu.Menu
             watermark.material = new Material(watermark.material);
             watermarkImage = LoadTextureFromResource($"{PluginInfo.ClientResourcePath}.icon.png");
 
-            if (!Plugin.FirstLaunch)
-            {
-                GameObject closeMessage = uiPrefab.transform.Find("Canvas")?.Find("HideMessage")?.gameObject;
-                closeMessage?.SetActive(false);
-            }
+            GameObject closeMessage = uiPrefab.transform.Find("Canvas")?.Find("HideMessage")?.gameObject;
+            closeMessage?.SetActive(false);
 
             Update();
         }
@@ -160,6 +163,13 @@ namespace iiMenu.Menu
         private List<TextMeshProUGUI> textObjects;
         private List<Image> imageObjects = new List<Image>();
 
+        private GameObject pcGuiTogglePanel;
+        private Image pcGuiTogglePanelImage;
+        private Toggle pcGuiToggle;
+        private Image pcGuiToggleBoxImage;
+        private Image pcGuiToggleCheckImage;
+        private TextMeshProUGUI pcGuiToggleLabel;
+
         private float uiUpdateDelay;
 
         private void Update()
@@ -171,6 +181,38 @@ namespace iiMenu.Menu
             {
                 uiPrefab.SetActive(true);
 
+                if (controlBackground != null && controlBackground.gameObject.activeSelf)
+                    controlBackground.gameObject.SetActive(false);
+
+                bool showPcGuiToggle = !XRSettings.isDeviceActive && clickGUI;
+                if (pcGuiTogglePanel != null)
+                {
+                    if (pcGuiTogglePanel.activeSelf != showPcGuiToggle)
+                        pcGuiTogglePanel.SetActive(showPcGuiToggle);
+
+                    if (showPcGuiToggle)
+                    {
+                        if (pcGuiToggle != null && pcGuiToggle.isOn != clickGuiMenuOpen)
+                            pcGuiToggle.SetIsOnWithoutNotify(clickGuiMenuOpen);
+
+                        if (pcGuiTogglePanelImage != null)
+                            pcGuiTogglePanelImage.color = DarkenColor(backgroundColor.GetCurrentColor(), 0.4f);
+
+                        if (pcGuiToggleBoxImage != null)
+                            pcGuiToggleBoxImage.color = buttonColors[0].GetCurrentColor();
+
+                        if (pcGuiToggleCheckImage != null)
+                            pcGuiToggleCheckImage.color = buttonColors[1].GetCurrentColor();
+
+                        if (pcGuiToggleLabel != null)
+                        {
+                            pcGuiToggleLabel.color = textColors[1].GetCurrentColor();
+                            pcGuiToggleLabel.SafeSetFont(activeFont);
+                            pcGuiToggleLabel.SafeSetFontStyle(activeFontStyle);
+                        }
+                    }
+                }
+
                 if (UnityInput.Current.GetKeyDown(KeyCode.BackQuote))
                     ToggleDebug();
 
@@ -178,16 +220,20 @@ namespace iiMenu.Menu
                     ? textColors[1].GetCurrentColor()
                     : backgroundColor.GetCurrentColor();
 
-                versionLabel.color = guiColor;
                 roomStatus.color = guiColor;
                 arraylist.color = guiColor;
-                watermark.color = guiColor;
+                if (watermark != null)
+                {
+                    if (watermark.gameObject.activeSelf != !disableWatermark)
+                        watermark.gameObject.SetActive(!disableWatermark);
 
-                versionLabel.SafeSetFont(activeFont);
+                    if (!disableWatermark)
+                        watermark.color = guiColor;
+                }
+
                 roomStatus.SafeSetFont(activeFont);
                 arraylist.SafeSetFont(activeFont);
 
-                versionLabel.SafeSetFontStyle(activeFontStyle);
                 roomStatus.SafeSetFontStyle(activeFontStyle);
                 arraylist.SafeSetFontStyle(activeFontStyle);
 
@@ -203,12 +249,12 @@ namespace iiMenu.Menu
                 foreach (var imageObject in imageObjects)
                     imageObject.color = buttonColors[0].GetCurrentColor();
 
-                watermark.transform.rotation = Quaternion.Euler(0f, 0f, rockWatermark ? Mathf.Sin(Time.time * 2f) * 10f : 0f);
-                versionLabel.SafeSetText(FollowMenuSettings("Build") + " " + PluginInfo.Version + "\n" +
-                                    serverLink.Replace("https://", ""));
+                if (!disableWatermark && watermark != null)
+                    watermark.transform.rotation = Quaternion.Euler(0f, 0f, rockWatermark ? Mathf.Sin(Time.time * 2f) * 10f : 0f);
 
-                roomStatus.SafeSetText(FollowMenuSettings(!PhotonNetwork.InRoom ? "Not connected to room" : "Connected to room ") +
-                   (PhotonNetwork.InRoom ? PhotonNetwork.CurrentRoom.Name : ""));
+                roomStatus.SafeSetText(PhotonNetwork.InRoom
+                    ? FollowMenuSettings("Connected to room ") + PhotonNetwork.CurrentRoom.Name
+                    : string.Empty);
 
                 if (debugUI.activeSelf)
                 {
@@ -234,18 +280,21 @@ namespace iiMenu.Menu
                 }
 
                 if (!(Time.time > uiUpdateDelay)) return;
-                Texture2D watermarkTexture = customWatermark ?? watermarkImage;
-
-                if (watermark.sprite == null || watermark.sprite.texture == null || watermark.sprite.texture != watermarkTexture)
+                if (!disableWatermark && watermark != null)
                 {
-                    Sprite sprite = Sprite.Create(
-                        watermarkTexture,
-                        new Rect(0, 0, watermarkTexture.width, watermarkTexture.height),
-                        new Vector2(0.5f, 0.5f),
-                        100f
-                    );
+                    Texture2D watermarkTexture = customWatermark ?? watermarkImage;
 
-                    watermark.sprite = sprite;
+                    if (watermarkTexture != null && (watermark.sprite == null || watermark.sprite.texture == null || watermark.sprite.texture != watermarkTexture))
+                    {
+                        Sprite sprite = Sprite.Create(
+                            watermarkTexture,
+                            new Rect(0, 0, watermarkTexture.width, watermarkTexture.height),
+                            new Vector2(0.5f, 0.5f),
+                            100f
+                        );
+
+                        watermark.sprite = sprite;
+                    }
                 }
                    
                 if (flipArraylist)
@@ -323,6 +372,66 @@ namespace iiMenu.Menu
         }
 
         private readonly string hideGUIPath = $"{PluginInfo.BaseDirectory}/iiMenu_HideGUI.txt";
+
+        private void CreatePcClickGuiToggle(Transform canvas)
+        {
+            pcGuiTogglePanel = new GameObject("PcGuiTogglePanel");
+            pcGuiTogglePanel.transform.SetParent(canvas, false);
+
+            RectTransform panelRect = pcGuiTogglePanel.AddComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0f, 1f);
+            panelRect.anchorMax = new Vector2(0f, 1f);
+            panelRect.pivot = new Vector2(0f, 1f);
+            panelRect.anchoredPosition = new Vector2(16f, -16f);
+            panelRect.sizeDelta = new Vector2(300f, 48f);
+
+            pcGuiTogglePanelImage = pcGuiTogglePanel.AddComponent<Image>();
+
+            GameObject box = new GameObject("ToggleBox");
+            box.transform.SetParent(pcGuiTogglePanel.transform, false);
+
+            RectTransform boxRect = box.AddComponent<RectTransform>();
+            boxRect.anchorMin = new Vector2(0f, 0.5f);
+            boxRect.anchorMax = new Vector2(0f, 0.5f);
+            boxRect.pivot = new Vector2(0f, 0.5f);
+            boxRect.anchoredPosition = new Vector2(12f, 0f);
+            boxRect.sizeDelta = new Vector2(24f, 24f);
+
+            pcGuiToggleBoxImage = box.AddComponent<Image>();
+            pcGuiToggle = box.AddComponent<Toggle>();
+            pcGuiToggle.targetGraphic = pcGuiToggleBoxImage;
+
+            GameObject check = new GameObject("Checkmark");
+            check.transform.SetParent(box.transform, false);
+
+            RectTransform checkRect = check.AddComponent<RectTransform>();
+            checkRect.anchorMin = new Vector2(0.2f, 0.2f);
+            checkRect.anchorMax = new Vector2(0.8f, 0.8f);
+            checkRect.offsetMin = Vector2.zero;
+            checkRect.offsetMax = Vector2.zero;
+
+            pcGuiToggleCheckImage = check.AddComponent<Image>();
+            pcGuiToggle.graphic = pcGuiToggleCheckImage;
+
+            GameObject label = new GameObject("Label");
+            label.transform.SetParent(pcGuiTogglePanel.transform, false);
+
+            RectTransform labelRect = label.AddComponent<RectTransform>();
+            labelRect.anchorMin = new Vector2(0f, 0f);
+            labelRect.anchorMax = new Vector2(1f, 1f);
+            labelRect.offsetMin = new Vector2(46f, 0f);
+            labelRect.offsetMax = new Vector2(-10f, 0f);
+
+            pcGuiToggleLabel = label.AddComponent<TextMeshProUGUI>();
+            pcGuiToggleLabel.SafeSetText("Show PC Click GUI");
+            pcGuiToggleLabel.alignment = TextAlignmentOptions.MidlineLeft;
+            pcGuiToggleLabel.fontSize = 20f;
+
+            pcGuiToggle.SetIsOnWithoutNotify(clickGuiMenuOpen);
+            pcGuiToggle.onValueChanged.AddListener(value => clickGuiMenuOpen = value);
+            pcGuiTogglePanel.SetActive(false);
+        }
+
         private void ToggleGUI()
         {
             isOpen = !isOpen;
@@ -334,7 +443,7 @@ namespace iiMenu.Menu
             else
             {
                 if (!File.Exists(hideGUIPath))
-                    File.WriteAllText(hideGUIPath, "Text file generated with ii's Stupid Menu");
+                    File.WriteAllText(hideGUIPath, "Text file generated with Crystal Menu");
             }
 
             GameObject closeMessage = uiPrefab.transform.Find("Canvas")?.Find("HideMessage")?.gameObject;

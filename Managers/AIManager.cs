@@ -3,7 +3,7 @@
  * A mod menu for Gorilla Tag with over 1000+ mods
  *
  * Copyright (C) 2026  Goldentrophy Software
- * https://github.com/iiDk-the-actual/iis.Stupid.Menu
+ * https://github.com/CrystalMenu/CrystalMenu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,12 +37,12 @@ namespace iiMenu.Managers
 {
     public class AIManager
     {
-        public static string SystemPrompt = @"NAME: ii's Voice Assistant
+        public static string SystemPrompt = @"NAME: Crystal Voice Assistant
         MENU VERSION: {2}
         MOD COUNT: {0}
 
-        You are a voice assistant for a Gorilla Tag mod menu called ""ii's Stupid Menu"" by iiDk on GitHub. You are not iiDk, but represent the menu.
-        GitHub: https://github.com/iiDk-the-actual
+        You are a voice assistant for a Gorilla Tag mod menu called ""Crystal Menu"" by iiDk on GitHub. You are not iiDk, but represent the menu.
+        GitHub: https://github.com/CrystalMenu
         iiDk's Discord Server: {1}
         iiDk's Discord Username: @crimsoncauldron
 

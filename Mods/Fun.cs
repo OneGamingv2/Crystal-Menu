@@ -3,7 +3,7 @@
  * A mod menu for Gorilla Tag with over 1000+ mods
  *
  * Copyright (C) 2026  Goldentrophy Software
- * https://github.com/iiDk-the-actual/iis.Stupid.Menu
+ * https://github.com/CrystalMenu/CrystalMenu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -316,7 +316,6 @@ namespace iiMenu.Mods
                         if (targets.Contains(NetworkSystem.Instance.LocalPlayer.ActorNumber))
                             ObjectPools.instance.Instantiate(GTPlayer.Instance.waterParams.rippleEffect, splashPosition, splashRotation, GTPlayer.Instance.waterParams.rippleEffectScale * boundingRadius * 2f);
 
-                        Overpowered.SpecialTargetRPC(GorillaTagger.Instance.myVRRig.GetView, "RPC_PlaySplashEffect", new RaiseEventOptions { TargetActors = targets }, parameters);
                         break;
                     }
                 }
@@ -1677,9 +1676,6 @@ namespace iiMenu.Mods
                 var GunData = RenderGun();
                 RaycastHit Ray = GunData.Ray;
 
-                if (gunLocked && lockTarget != null)
-                    Overpowered.CreateItem(lockTarget.GetPlayer(), Overpowered.ObjectByName["GhostReactorEnergyCostGate"], lockTarget.headMesh.transform.position + RandomVector3(), RandomQuaternion(), Vector3.zero, Vector3.zero);
-
                 if (GetGunInput(true))
                 {
                     VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
@@ -1699,8 +1695,6 @@ namespace iiMenu.Mods
 
         public static void GhostReactorFreezeAll()
         {
-            VRRig randomPlayer = GetRandomVRRig(false);
-            Overpowered.CreateItem(randomPlayer.GetPlayer(), Overpowered.ObjectByName["GhostReactorEnergyCostGate"], randomPlayer.headMesh.transform.position + RandomVector3(), RandomQuaternion(), Vector3.zero, Vector3.zero);
         }
 
         public static void SetPlayerState(Player Target, GRPlayer.GRPlayerState State)
@@ -1736,9 +1730,10 @@ namespace iiMenu.Mods
             GRPlayer GRPlayer = GRPlayer.Get(Target.ActorNumber);
             VRRig Rig = GetVRRigFromPlayer(Target);
 
-            int netId = ManagerRegistry.GhostReactor.GameEntityManager.CreateTypeNetId(Overpowered.ObjectByName["GhostReactorEnemyChaserArmored"]);
+            int chaserArmoredPrefabId = ManagerRegistry.GhostReactor.GameEntityManager.itemPrefabFactory.FirstOrDefault(p => p.Value.name == "GhostReactorEnemyChaserArmored").Key;
+            int netId = ManagerRegistry.GhostReactor.GameEntityManager.CreateTypeNetId(chaserArmoredPrefabId);
 
-            ManagerRegistry.GhostReactor.GameEntityManager.photonView.RPC("CreateItemRPC", Target, new[] { netId }, new[] { (int)ManagerRegistry.GhostReactor.GameEntityManager.zone }, new[] { Overpowered.ObjectByName["GhostReactorEnemyChaserArmored"] }, new[] { BitPackUtils.PackWorldPosForNetwork(Rig.transform.position) }, new[] { BitPackUtils.PackQuaternionForNetwork(Rig.transform.rotation) }, new[] { 0L }, new[] { 0 });
+            ManagerRegistry.GhostReactor.GameEntityManager.photonView.RPC("CreateItemRPC", Target, new[] { netId }, new[] { (int)ManagerRegistry.GhostReactor.GameEntityManager.zone }, new[] { chaserArmoredPrefabId }, new[] { BitPackUtils.PackWorldPosForNetwork(Rig.transform.position) }, new[] { BitPackUtils.PackQuaternionForNetwork(Rig.transform.rotation) }, new[] { 0L }, new[] { 0 });
 
             ManagerRegistry.GhostReactor.GhostReactorManager.gameAgentManager.photonView.RPC("ApplyBehaviorRPC", Target, new[] { netId }, new byte[] { 6 });
 
@@ -3453,10 +3448,6 @@ Piece Name: {gunTarget.name}";
                 projectile.SetSnowballActiveLocal(true);
                 CoroutineManager.instance.StartCoroutine(Projectiles.DisableProjectile(projectile));
 
-                if (Overpowered.DisableCoroutine != null)
-                    CoroutineManager.instance.StopCoroutine(Overpowered.DisableCoroutine);
-
-                Overpowered.DisableCoroutine = CoroutineManager.instance.StartCoroutine(Overpowered.DisableSnowball(false));
                 GetProjectile($"{Projectiles.SnowballName}RightAnchor").SetSnowballActiveLocal(true);
 
                 everythingSpamDelay = Time.time + 0.0625f;
@@ -3628,9 +3619,6 @@ Piece Name: {gunTarget.name}";
                         break;
                     case 6:
                         Projectiles.BetaFireProjectile(projectileName, GorillaTagger.Instance.rightHandTransform.position, GetGunDirection(GorillaTagger.Instance.rightHandTransform) * ShootStrength, RandomColor());
-                        break;
-                    case 7:
-                        Overpowered.BetaSpawnSnowball(GorillaTagger.Instance.rightHandTransform.position, GetGunDirection(GorillaTagger.Instance.rightHandTransform) * ShootStrength, 0);
                         break;
                 }
             }
@@ -5077,41 +5065,7 @@ Piece Name: {gunTarget.name}";
 
                 if (GetGunInput(true))
                 {
-                    if (Overpowered.basePosition == null)
-                        Overpowered.basePosition = NewPointer.transform.position + Vector3.up;
-
-                    if (Time.time > Overpowered.textDelay)
-                    {
-                        Overpowered.textDelay = Time.time + 0.1f;
-                        bool[][] characterData = Overpowered.Letters[Overpowered.textToRender[Overpowered.characterIndex].ToString()];
-
-                        List<Vector3> positions = new List<Vector3>();
-                        for (int i = 0; i < characterData.Length; i++)
-                        {
-                            bool[] column = characterData[i];
-
-                            for (int j = 0; j < column.Length; j++)
-                            {
-                                bool currentIndex = column[j];
-                                Vector3 offset = new Vector3((j * 0.2f) + (Overpowered.characterIndex * 1.2f), i * -0.2f, 0f);
-
-                                if (currentIndex)
-                                    positions.Add(Overpowered.basePosition.Value + offset);
-                            }
-                        }
-
-                        Overpowered.characterIndex++;
-
-                        foreach (Vector3 position in positions)
-                            RequestCreatePiece(pieceIdSet, position, Quaternion.identity, 0);
-
-                        RPCProtection();
-                    }
-                }
-                else
-                {
-                    Overpowered.basePosition = null;
-                    Overpowered.characterIndex = 0;
+                    // Building block text functionality removed (depends on deleted Overpowered class)
                 }
             }
         }
@@ -7077,7 +7031,7 @@ Piece Name: {gunTarget.name}";
                 catch { LogManager.Log("Failed to log player"); }
             }
             text += "\n====================================\n";
-            text += "Text file generated with ii's Stupid Menu";
+            text += "Text file generated with Crystal Menu";
             string fileName = $"{PluginInfo.BaseDirectory}/PlayerInfo/" + PhotonNetwork.CurrentRoom.Name + ".txt";
 
             File.WriteAllText(fileName, text);

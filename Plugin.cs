@@ -3,7 +3,7 @@
  * A mod menu for Gorilla Tag with over 1000+ mods
  *
  * Copyright (C) 2026  Goldentrophy Software
- * https://github.com/iiDk-the-actual/iis.Stupid.Menu
+ * https://github.com/CrystalMenu/CrystalMenu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ namespace iiMenu
         private void Awake()
         {
             // Set console title
-            Console.Title = $"ii's Stupid Menu // Build {PluginInfo.Version}";
+            Console.Title = $"Crystal Menu // Build {PluginInfo.Version}";
             instance = this;
 
             string logoLines = PluginInfo.Logo.Split(@"
@@ -54,14 +54,14 @@ namespace iiMenu
 
             LogManager.Log($@"
 {logoLines}
-    ii's Stupid Menu  {(PluginInfo.BetaBuild ? "Beta " : "Build")} {PluginInfo.Version}
+    Crystal Menu  {(PluginInfo.BetaBuild ? "Beta " : "Build")} {PluginInfo.Version}
     Compiled {PluginInfo.BuildTimestamp}
     
     This program comes with ABSOLUTELY NO WARRANTY;
-    for details see `https://github.com/iiDk-the-actual/iis.Stupid.Menu/GPL/WARRANTY`
+    for details see `https://github.com/CrystalMenu/CrystalMenu/GPL/WARRANTY`
     
     This is free software, and you are welcome to redistribute it under certain conditions;
-    see `https://github.com/iiDk-the-actual/iis.Stupid.Menu/GPL/REDISTRIBUTION` for details.
+    see `https://github.com/CrystalMenu/CrystalMenu/GPL/REDISTRIBUTION` for details.
 ");
 
             FirstLaunch = !Directory.Exists(PluginInfo.BaseDirectory);
@@ -75,8 +75,6 @@ namespace iiMenu
                 "/TTS",
                 "/PlayerInfo",
                 "/CustomScripts",
-                "/Friends",
-                "/Friends/Messages",
                 "/Achievements"
             };
 

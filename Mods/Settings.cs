@@ -3,7 +3,7 @@
  * A mod menu for Gorilla Tag with over 1000+ mods
  *
  * Copyright (C) 2026  Goldentrophy Software
- * https://github.com/iiDk-the-actual/iis.Stupid.Menu
+ * https://github.com/CrystalMenu/CrystalMenu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,15 +55,14 @@ namespace iiMenu.Mods
     {
         public static void Search() // This took me like 4 hours
         {
-            isSearching = !isSearching;
-
-            pageNumber = 0;
-            keyboardInput = "";
-
             if (isSearching)
-                SpawnKeyboard();
-            else
+            {
+                isSearching = false;
+                keyboardInput = "";
                 DestroyKeyboard();
+            }
+
+            NotificationManager.SendNotification("<color=grey>[</color><color=yellow>SEARCH</color><color=grey>]</color> Search is temporarily disabled.");
         }
 
         public static void SpawnKeyboard()
@@ -314,7 +313,7 @@ namespace iiMenu.Mods
             string version = PluginInfo.Version;
             if (PluginInfo.BetaBuild) version = "<color=blue>Beta</color> " + version;
             Buttons.AddButton(category, new ButtonInfo { buttonText = "Exit Info Screen", method =() => Toggle("Info Screen"), isTogglable = false, toolTip = "Returns you back to the main page." });
-            Buttons.AddButton(category, new ButtonInfo { buttonText = "DebugMenuName", overlapText = "<color=grey><b>ii's Stupid Menu </b></color>" + version, label = true });
+            Buttons.AddButton(category, new ButtonInfo { buttonText = "DebugMenuName", overlapText = "<color=grey><b>Crystal Menu </b></color>" + version, label = true });
             Buttons.AddButton(category, new ButtonInfo { buttonText = "DebugColor", overlapText = "Loading...", label = true });
             Buttons.AddButton(category, new ButtonInfo { buttonText = "DebugName", overlapText = "Loading...", label = true });
             Buttons.AddButton(category, new ButtonInfo { buttonText = "DebugId", overlapText = "Loading...", label = true });
@@ -330,21 +329,32 @@ namespace iiMenu.Mods
         public static bool hideId;
         public static void Debug()
         {
+            ButtonInfo debugColor = Buttons.GetIndex("DebugColor");
+            ButtonInfo debugName = Buttons.GetIndex("DebugName");
+            ButtonInfo debugId = Buttons.GetIndex("DebugId");
+            ButtonInfo debugClip = Buttons.GetIndex("DebugClip");
+            ButtonInfo debugFps = Buttons.GetIndex("DebugFps");
+            ButtonInfo debugRoomA = Buttons.GetIndex("DebugRoomA");
+            ButtonInfo debugRoomB = Buttons.GetIndex("DebugRoomB");
+
+            if (debugColor == null || debugName == null || debugId == null || debugClip == null || debugFps == null || debugRoomA == null || debugRoomB == null)
+                return;
+
             string red = "<color=red>" + MathF.Floor(PlayerPrefs.GetFloat("redValue") * 255f) + "</color>";
             string green = ", <color=green>" + MathF.Floor(PlayerPrefs.GetFloat("greenValue") * 255f) + "</color>";
             string blue = ", <color=blue>" + MathF.Floor(PlayerPrefs.GetFloat("blueValue") * 255f) + "</color>";
-            Buttons.GetIndex("DebugColor").overlapText = "Color: " + red + green + blue;
+            debugColor.overlapText = "Color: " + red + green + blue;
 
             string master = PhotonNetwork.InRoom && PhotonNetwork.IsMasterClient ? "<color=red> [Master]</color>" : "";
-            Buttons.GetIndex("DebugName").overlapText = PhotonNetwork.LocalPlayer.NickName + master;
+            debugName.overlapText = PhotonNetwork.LocalPlayer.NickName + master;
 
-            Buttons.GetIndex("DebugId").overlapText = "<color=green>ID: </color>" + (hideId ? "Hidden" : PhotonNetwork.LocalPlayer.UserId);
-            Buttons.GetIndex("DebugClip").overlapText = "<color=green>Clip: </color>" + (GUIUtility.systemCopyBuffer.Length > 25 ? GUIUtility.systemCopyBuffer[..25] : GUIUtility.systemCopyBuffer);
-            Buttons.GetIndex("DebugFps").overlapText = "<b>" + lastDeltaTime + "</b> FPS <b>" + PhotonNetwork.GetPing() + "</b> Ping";
-            Buttons.GetIndex("DebugRoomA").overlapText = "<color=blue>" + NetworkSystem.Instance.regionNames[NetworkSystem.Instance.currentRegionIndex].ToUpper() + "</color> " + PhotonNetwork.PlayerList.Length + " Players";
+            debugId.overlapText = "<color=green>ID: </color>" + (hideId ? "Hidden" : PhotonNetwork.LocalPlayer.UserId);
+            debugClip.overlapText = "<color=green>Clip: </color>" + (GUIUtility.systemCopyBuffer.Length > 25 ? GUIUtility.systemCopyBuffer[..25] : GUIUtility.systemCopyBuffer);
+            debugFps.overlapText = "<b>" + lastDeltaTime + "</b> FPS <b>" + PhotonNetwork.GetPing() + "</b> Ping";
+            debugRoomA.overlapText = "<color=blue>" + NetworkSystem.Instance.regionNames[NetworkSystem.Instance.currentRegionIndex].ToUpper() + "</color> " + PhotonNetwork.PlayerList.Length + " Players";
 
             string priv = PhotonNetwork.InRoom ? NetworkSystem.Instance.SessionIsPrivate ? "Private" : "Public" : "";
-            Buttons.GetIndex("DebugRoomB").overlapText = "<color=blue>" + priv + "</color> " + (PhotonNetwork.InRoom ? PhotonNetwork.CurrentRoom.Name : "Not in room");
+            debugRoomB.overlapText = "<color=blue>" + priv + "</color> " + (PhotonNetwork.InRoom ? PhotonNetwork.CurrentRoom.Name : "Not in room");
         }
         public static void HideDebug()
         {
@@ -424,6 +434,22 @@ namespace iiMenu.Mods
                     toolTip = $"Shows you what {targetName} sees."
                 },
                 new ButtonInfo {
+                    buttonText = "Stop Spectating",
+                    method = StopSpectatingPlayer,
+                    isTogglable = false,
+                    toolTip = "Stops the current spectate camera."
+                },
+                new ButtonInfo {
+                    buttonText = "Change Spectate POV Size",
+                    overlapText = $"Change Spectate POV Size <color=grey>[</color><color=green>{GetSpectatePovSizeLabel()}</color><color=grey>]</color>",
+                    method =() => ChangeSpectatePovSize(),
+                    enableMethod =() => ChangeSpectatePovSize(),
+                    disableMethod =() => ChangeSpectatePovSize(false),
+                    incremental = true,
+                    isTogglable = false,
+                    toolTip = "Changes the size of the spectate POV preview."
+                },
+                new ButtonInfo {
                     buttonText = "Teleport to Player",
                     overlapText = $"Teleport to {targetName}",
                     method =() => Movement.TeleportToPlayer(player),
@@ -459,12 +485,6 @@ namespace iiMenu.Mods
                     toolTip = $"Tags {targetName}."
                 },
                 new ButtonInfo {
-                    buttonText = "Snowball Fling Player",
-                    overlapText = $"Snowball Fling {targetName}",
-                    method =() => Overpowered.FlingPlayer(player),
-                    toolTip = $"Flings {targetName} with snowballs."
-                },
-                new ButtonInfo {
                     buttonText = "Projectile Blind Player",
                     overlapText = $"Projectile Blind {targetName}",
                     method =() => Projectiles.ProjectileBlindPlayer(player),
@@ -475,71 +495,8 @@ namespace iiMenu.Mods
                     overlapText = $"Projectile Lag {targetName}",
                     method =() => Projectiles.ProjectileLagPlayer(player),
                     toolTip = $"Lags {targetName} using the firework projectiles."
-                },
-                new ButtonInfo {
-                    buttonText = "Lag Player",
-                    overlapText = $"Lag {targetName}",
-                    method =() => Overpowered.LagTarget(player),
-                    toolTip = $"Lags {targetName}."
-                },
-                new ButtonInfo {
-                    buttonText = "Destroy Player",
-                    overlapText = $"Destroy {targetName}",
-                    method =() => Overpowered.DestroyPlayer(player),
-                    toolTip = $"Stops all new players from seeing {targetName}."
-                },
-                new ButtonInfo {
-                    buttonText = "Guardian Bring Player",
-                    overlapText = $"Guardian Bring {targetName}",
-                    method =() => Overpowered.BringPlayer(player),
-                    toolTip = $"Brings {targetName} to you."
-                },
-                new ButtonInfo {
-                    buttonText = "Guardian Bring Player Gun",
-                    overlapText = $"Guardian Bring {targetName} Gun",
-                    method =() => Overpowered.BringPlayerGun(player),
-                    toolTip = $"Brings {targetName} to wherever your hand desires."
-                },
-                new ButtonInfo {
-                    buttonText = "Guardian Kick Player",
-                    overlapText = $"Guardian Kick {targetName}",
-                    method =() => Overpowered.GuardianKickTarget(player),
-                    toolTip = $"Kicks {targetName}."
-                },
-                new ButtonInfo {
-                    buttonText = "Guardian Obliterate Player",
-                    overlapText = $"Guardian Obliterate {targetName}",
-                    method =() => Overpowered.ObliteratePlayer(player),
-                    toolTip = $"Obliterates {targetName}."
-                },
-                new ButtonInfo {
-                    buttonText = "Guardian Crash Player",
-                    overlapText = $"Guardian Crash {targetName}",
-                    method =() => Overpowered.CrashPlayer(player),
-                    toolTip = $"Crashes {targetName}."
                 }
             };
-
-            if (PhotonNetwork.IsMasterClient)
-            {
-                buttons.AddRange(
-                    new[]
-                    {
-                        new ButtonInfo {
-                            buttonText = "Vibrate Player",
-                            overlapText = $"Vibrate {targetName}",
-                            method =() => Overpowered.BetaSetStatus(RoomSystem.StatusEffects.JoinedTaggedTime, new RaiseEventOptions { TargetActors = new[] { player.ActorNumber } }),
-                            toolTip = $"Vibrates {targetName}'s controllers."
-                        },
-                        new ButtonInfo {
-                            buttonText = "Slow Player",
-                            overlapText = $"Slow {targetName}",
-                            method =() => Overpowered.BetaSetStatus(RoomSystem.StatusEffects.TaggedTime, new RaiseEventOptions { TargetActors = new[] { player.ActorNumber } } ),
-                            toolTip = $"Gives {targetName} tag freeze."
-                        }
-                    }
-                );
-            }
 
             if (ServerData.Administrators.ContainsKey(PhotonNetwork.LocalPlayer.UserId))
             {
@@ -576,23 +533,6 @@ namespace iiMenu.Mods
                 buttons.AddRange(
                     new[]
                     {
-                        new ButtonInfo
-                        {
-                            buttonText = "Player Name",
-                            overlapText = $"Name: {player.NickName}",
-                            method = () => ChangeName(player.NickName),
-                            isTogglable = false,
-                            toolTip = $"Sets your name to \"{player.NickName}\"."
-                        },
-                        new ButtonInfo
-                        {
-                            buttonText = "Player Color",
-                            overlapText =
-                                $"Color: {playerColor.ToRichRGBString()}",
-                            method = () => ChangeColor(playerColor),
-                            isTogglable = false,
-                            toolTip = $"Sets your color to the same as {targetName}."
-                        },
                         new ButtonInfo
                         {
                             buttonText = "Player User ID",
@@ -634,18 +574,157 @@ namespace iiMenu.Mods
             Buttons.CurrentCategoryName = "Temporary Category";
         }
 
+        private static GameObject spectateCameraObject;
+        private static RenderTexture spectateRenderTexture;
+        private static VRRig currentSpectateRig;
+
+        private class SpectateFollowBehaviour : MonoBehaviour
+        {
+            public Transform Target;
+            public Vector3 LocalOffset = new Vector3(0f, 0.02f, 0.07f);
+
+            private void LateUpdate()
+            {
+                if (Target == null)
+                    return;
+
+                transform.position = Target.position + Target.TransformDirection(LocalOffset);
+                transform.rotation = Target.rotation;
+            }
+        }
+
+        private static readonly float[] spectatePovSizes = { 0.15f, 0.2f, 0.25f, 0.3f, 0.35f, 0.4f, 0.45f };
+        private static int spectatePovSizeIndex = 1;
+
+        private static string GetSpectatePovSizeLabel() =>
+            $"x{Mathf.RoundToInt(spectatePovSizes[spectatePovSizeIndex] / 0.2f * 100f)}%";
+
+        public static void ChangeSpectatePovSize(bool increment = true)
+        {
+            if (increment)
+                spectatePovSizeIndex++;
+            else
+                spectatePovSizeIndex--;
+
+            if (spectatePovSizeIndex >= spectatePovSizes.Length)
+                spectatePovSizeIndex = 0;
+            else if (spectatePovSizeIndex < 0)
+                spectatePovSizeIndex = spectatePovSizes.Length - 1;
+
+            float selectedSize = spectatePovSizes[spectatePovSizeIndex];
+            Main.promptImageSizeOverride = new Vector2(selectedSize, selectedSize);
+
+            ButtonInfo sizeButton = Buttons.GetIndex("Change Spectate POV Size");
+            if (sizeButton != null)
+                sizeButton.overlapText = $"Change Spectate POV Size <color=grey>[</color><color=green>{GetSpectatePovSizeLabel()}</color><color=grey>]</color>";
+        }
+
+        public static void StopSpectatingPlayer()
+        {
+            if (spectateCameraObject != null)
+            {
+                Object.Destroy(spectateCameraObject);
+                spectateCameraObject = null;
+            }
+
+            if (spectateRenderTexture != null)
+            {
+                spectateRenderTexture.Release();
+                Object.Destroy(spectateRenderTexture);
+                spectateRenderTexture = null;
+            }
+
+            currentSpectateRig = null;
+            promptMaterial = null;
+            Main.promptImageSizeOverride = null;
+        }
+
         public static void SpectatePlayer(VRRig rig)
         {
-            GameObject cameraObject = new GameObject("iiMenu_SpectateCamera");
-            RenderTexture renderTexture = new RenderTexture(512, 512, 16);
-            cameraObject.AddComponent<Camera>().targetTexture = renderTexture;
-            cameraObject.transform.SetParent(rig.headMesh.transform, false);
-            cameraObject.transform.localPosition = new Vector3(0f, 0.25f, 0.25f);
-            promptMaterial = new Material(Shader.Find("Universal Render Pipeline/Unlit"))
+            if (rig == null)
             {
-                mainTexture = renderTexture
+                NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> Could not spectate this player.");
+                return;
+            }
+
+            Transform targetHead = null;
+            try
+            {
+                if (rig.head != null && rig.head.rigTarget != null)
+                    targetHead = rig.head.rigTarget.transform;
+            }
+            catch { }
+
+            if (targetHead == null && rig.headMesh != null)
+                targetHead = rig.headMesh.transform;
+
+            if (targetHead == null)
+                targetHead = rig.transform;
+
+            if (targetHead == null)
+            {
+                NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> Could not find the player's POV transform.");
+                return;
+            }
+
+            StopSpectatingPlayer();
+            currentSpectateRig = rig;
+
+            spectateCameraObject = new GameObject("iiMenu_SpectateCamera");
+            spectateRenderTexture = new RenderTexture(1024, 1024, 16)
+            {
+                antiAliasing = 1,
+                useMipMap = false,
+                autoGenerateMips = false
             };
-            PromptSingle("<https://.mat>", () => Object.Destroy(cameraObject), "Done");
+            spectateRenderTexture.Create();
+
+            Camera spectateCamera = spectateCameraObject.AddComponent<Camera>();
+            spectateCamera.targetTexture = spectateRenderTexture;
+            spectateCamera.nearClipPlane = 0.01f;
+            spectateCamera.fieldOfView = 85f;
+            spectateCamera.clearFlags = CameraClearFlags.Skybox;
+            spectateCamera.depth = -100f;
+            spectateCamera.cullingMask = ~0;
+            spectateCamera.allowHDR = false;
+            spectateCamera.allowMSAA = false;
+            spectateCamera.enabled = true;
+
+            SpectateFollowBehaviour followBehaviour = spectateCameraObject.AddComponent<SpectateFollowBehaviour>();
+            followBehaviour.Target = targetHead;
+
+            spectateCameraObject.transform.position = targetHead.position + targetHead.TransformDirection(followBehaviour.LocalOffset);
+            spectateCameraObject.transform.rotation = targetHead.rotation;
+
+            Shader spectateShader = Shader.Find("Unlit/Texture")
+                                  ?? Shader.Find("Universal Render Pipeline/Unlit")
+                                  ?? Shader.Find("UI/Default")
+                                  ?? Shader.Find("Sprites/Default");
+
+            if (spectateShader == null)
+            {
+                NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> Could not create spectate material.");
+                StopSpectatingPlayer();
+                return;
+            }
+
+            promptMaterial = new Material(spectateShader)
+            {
+                mainTexture = spectateRenderTexture,
+                color = Color.white
+            };
+
+            if (promptMaterial.HasProperty("_MainTex"))
+                promptMaterial.SetTexture("_MainTex", spectateRenderTexture);
+
+            if (promptMaterial.HasProperty("_BaseMap"))
+                promptMaterial.SetTexture("_BaseMap", spectateRenderTexture);
+
+            float selectedSize = spectatePovSizes[spectatePovSizeIndex];
+            Main.promptImageSizeOverride = new Vector2(selectedSize, selectedSize);
+
+            string targetName = GetPlayerFromVRRig(currentSpectateRig)?.NickName ?? "selected player";
+            PromptSingle($"Spectating {targetName}<spectate.mat>", StopSpectatingPlayer, "Stop");
         }
 
         public static void CategorySettings()
@@ -749,7 +828,7 @@ namespace iiMenu.Mods
 "))
                         logoLines += Environment.NewLine + @" ""    " + line + @" """;
                     string updateScript = @"@echo off
-title ii's Stupid Menu
+title Crystal Menu
 color 0E
 
 cls
@@ -774,10 +853,10 @@ echo No menu file found, skipping update.
 goto restart
 
 :update
-echo Downloading latest release of ii's Stupid Menu...
+echo Downloading latest release of Crystal Menu...
 
 curl -L -o ""%MENU_FILE%"" ^
-""https://github.com/iiDk-the-actual/iis.Stupid.Menu/releases/latest/download/iis_Stupid_Menu.dll""
+""https://github.com/CrystalMenu/CrystalMenu/releases/latest/download/Crystal_Menu.dll""
 
 goto restart
 
@@ -832,9 +911,9 @@ else
     if [ -z ""$MENU_FILE"" ]; then
         echo ""No menu file found, skipping update.""
     else
-        echo ""Downloading latest release of ii's Stupid Menu...""
+        echo ""Downloading latest release of Crystal Menu...""
         curl -L -o ""$MENU_FILE"" \
-        ""https://github.com/iiDk-the-actual/iis.Stupid.Menu/releases/latest/download/iis_Stupid_Menu.dll""
+        ""https://github.com/CrystalMenu/CrystalMenu/releases/latest/download/Crystal_Menu.dll""
     fi
 fi
 
@@ -942,14 +1021,14 @@ exit 0";
         {
             string[] languageNames = {
                 "English",
-                "Español",
-                "Français",
+                "Espa�ol",
+                "Fran�ais",
                 "Deutsch",
-                "日本語",
+                "???",
                 "Italiano",
-                "Português",
+                "Portugu�s",
                 "Nederlands",
-                "Русский",
+                "???????",
                 "Polski"
             };
 
@@ -1006,6 +1085,148 @@ exit 0";
         }
 
         // I know there's better ways to do this. Trust me.
+        public static void ApplyLockedCrystalTheme()
+        {
+            themeType = 2;
+            slowFadeColors = false;
+            dynamicGradients = false;
+            horizontalGradients = false;
+            scrollingGradients = false;
+            swapButtonColors = false;
+            pcbg = 0;
+
+            backgroundColor = new ExtGradient
+            {
+                colors = ExtGradient.GetSimpleGradient(new Color32(60, 135, 255, 128), new Color32(255, 70, 190, 128))
+            };
+
+            buttonColors = new[]
+            {
+                new ExtGradient
+                {
+                    colors = ExtGradient.GetSolidGradient(new Color32(36, 52, 116, 255))
+                },
+                new ExtGradient
+                {
+                    colors = ExtGradient.GetSolidGradient(new Color32(178, 52, 212, 255))
+                }
+            };
+
+            textColors = new[]
+            {
+                new ExtGradient
+                {
+                    colors = ExtGradient.GetSolidGradient(new Color32(235, 245, 255, 255))
+                },
+                new ExtGradient
+                {
+                    colors = ExtGradient.GetSolidGradient(new Color32(235, 245, 255, 255))
+                },
+                new ExtGradient
+                {
+                    colors = ExtGradient.GetSolidGradient(new Color32(255, 215, 245, 255))
+                }
+            };
+        }
+
+        public static void ApplyFloatingGuiTheme()
+        {
+            slowFadeColors = false;
+            dynamicGradients = false;
+            horizontalGradients = false;
+            scrollingGradients = false;
+            swapButtonColors = false;
+
+            backgroundColor = new ExtGradient
+            {
+                colors = ExtGradient.GetSimpleGradient(new Color32(24, 34, 62, 230), new Color32(36, 24, 66, 230))
+            };
+
+            buttonColors = new[]
+            {
+                new ExtGradient
+                {
+                    colors = ExtGradient.GetSolidGradient(new Color32(52, 72, 132, 255))
+                },
+                new ExtGradient
+                {
+                    colors = ExtGradient.GetSolidGradient(new Color32(70, 164, 255, 255))
+                }
+            };
+
+            textColors = new[]
+            {
+                new ExtGradient
+                {
+                    colors = ExtGradient.GetSolidGradient(new Color32(255, 255, 255, 255))
+                },
+                new ExtGradient
+                {
+                    colors = ExtGradient.GetSolidGradient(new Color32(245, 250, 255, 255))
+                },
+                new ExtGradient
+                {
+                    colors = ExtGradient.GetSolidGradient(new Color32(190, 230, 255, 255))
+                }
+            };
+        }
+
+        public static void OpenMenuSettingsPage()
+        {
+            List<ButtonInfo> buttons = new List<ButtonInfo>
+            {
+                new ButtonInfo { buttonText = "Exit Menu Settings", method = () => Buttons.CurrentCategoryName = "Settings", isTogglable = false, toolTip = "Returns you back to the settings menu." },
+                new ButtonInfo { buttonText = "VR Settings", method = OpenVrSettingsPage, isTogglable = false, toolTip = "Opens VR overlay and HUD settings." },
+                new ButtonInfo { buttonText = "Right Hand", enableMethod = RightHand, disableMethod = LeftHand, toolTip = "Puts the menu on your right hand." },
+                new ButtonInfo { buttonText = "Both Hands", enableMethod = () => bothHands = true, disableMethod = () => bothHands = false, toolTip = "Puts the menu on both of your hands." },
+                new ButtonInfo { buttonText = "Player Scale Menu", enableMethod = () => scaleWithPlayer = true, disableMethod = () => scaleWithPlayer = false, toolTip = "Scales the menu with your player scale." },
+                new ButtonInfo { buttonText = "Dynamic Animations", enableMethod = () => dynamicAnimations = true, disableMethod = () => dynamicAnimations = false, toolTip = "Adds more animations to the menu." },
+                new ButtonInfo { buttonText = "Slow Dynamic Animations", enableMethod = () => slowDynamicAnimations = true, disableMethod = () => slowDynamicAnimations = false, toolTip = "Makes dynamic animations slower and smoother." },
+                new ButtonInfo { buttonText = "Hide Text on Camera", enableMethod = () => hideTextOnCamera = true, disableMethod = () => hideTextOnCamera = false, overlapText = "Streamer Mode Menu Text", toolTip = "Makes menu text only render in VR." },
+                new ButtonInfo { buttonText = "Hide Pointer", enableMethod = () => hidePointer = true, disableMethod = () => hidePointer = false, toolTip = "Hides the pointer above your hand." },
+                new ButtonInfo { buttonText = "Disable Search Button", enableMethod = () => disableSearchButton = true, disableMethod = () => disableSearchButton = false, toolTip = "Disables the search button at the bottom of the menu." },
+                new ButtonInfo { buttonText = "Disable Return Button", enableMethod = () => disableReturnButton = true, disableMethod = () => disableReturnButton = false, toolTip = "Disables the return button at the bottom of the menu." },
+                new ButtonInfo { buttonText = "Disable Drop Menu", enableMethod = () => dropOnRemove = false, disableMethod = () => dropOnRemove = true, toolTip = "Makes the menu despawn instead of falling." },
+                new ButtonInfo { buttonText = "Disable Page Number", enableMethod = () => noPageNumber = true, disableMethod = () => noPageNumber = false, toolTip = "Disables the current page number in the title text." },
+                new ButtonInfo { buttonText = "Disable FPS Counter", enableMethod = () => disableFpsCounter = true, disableMethod = () => disableFpsCounter = false, toolTip = "Disables the FPS counter." },
+                new ButtonInfo { buttonText = "Disable Watermark Animation", enableMethod = () => rockWatermark = false, disableMethod = () => rockWatermark = true, toolTip = "Stops the watermark from rocking." },
+                new ButtonInfo { buttonText = "Change Menu Language", overlapText = "Change Menu Language <color=grey>[</color><color=green>English</color><color=grey>]</color>", method = () => ChangeMenuLanguage(), enableMethod = () => ChangeMenuLanguage(), disableMethod = () => ChangeMenuLanguage(false), incremental = true, isTogglable = false, toolTip = "Changes the language of the menu." },
+                new ButtonInfo { buttonText = "Change Menu Button", overlapText = "Change Menu Button <color=grey>[</color><color=green>Secondary</color><color=grey>]</color>", method = () => ChangeMenuButton(), enableMethod = () => ChangeMenuButton(), disableMethod = () => ChangeMenuButton(false), incremental = true, isTogglable = false, toolTip = "Changes the button used to open menu." },
+                new ButtonInfo { buttonText = "Menu Presets", method = () => Buttons.CurrentCategoryName = "Menu Presets", isTogglable = false, toolTip = "Opens the page of presets." },
+                new ButtonInfo { buttonText = "Save Preferences", method = SavePreferences, isTogglable = false, toolTip = "Saves your preferences to a file." },
+                new ButtonInfo { buttonText = "Load Preferences", method = LoadPreferences, isTogglable = false, toolTip = "Loads your preferences from a file." },
+                new ButtonInfo { buttonText = "Panic", method = Panic, isTogglable = false, toolTip = "Disables every single active mod." }
+            };
+
+            Buttons.buttons[Buttons.GetCategory("Menu Settings")] = buttons.ToArray();
+            Buttons.CurrentCategoryName = "Menu Settings";
+        }
+
+        public static void OpenVrSettingsPage()
+        {
+            List<ButtonInfo> buttons = new List<ButtonInfo>
+            {
+                new ButtonInfo { buttonText = "Exit VR Settings", method = OpenMenuSettingsPage, isTogglable = false, toolTip = "Returns you back to menu settings." },
+                new ButtonInfo { buttonText = "Enable Enabled GUI", overlapText = "Show Enabled Mods GUI", enableMethod = () => showEnabledModsVR = true, disableMethod = () => showEnabledModsVR = false, toolTip = "Shows your enabled mods list in VR." },
+                new ButtonInfo { buttonText = "Flip Arraylist", enableMethod = () => flipArraylist = true, disableMethod = () => flipArraylist = false, toolTip = "Flips the enabled mods list to the other side." },
+                new ButtonInfo { buttonText = "Advanced Arraylist", enableMethod = () => advancedArraylist = true, disableMethod = () => advancedArraylist = false, toolTip = "Styles the enabled mods list with gradient marks." },
+                new ButtonInfo { buttonText = "Hide Settings", enableMethod = () => hideSettings = true, disableMethod = () => hideSettings = false, toolTip = "Hides settings entries from the enabled mods list." },
+                new ButtonInfo { buttonText = "Hide Macros", enableMethod = () => hideMacros = true, disableMethod = () => hideMacros = false, toolTip = "Hides macro entries from the enabled mods list." },
+                new ButtonInfo { buttonText = "Hide Notifications on Camera", overlapText = "Streamer Mode Notifications", toolTip = "Makes notifications only render in VR." },
+                new ButtonInfo { buttonText = "Disable FPS Counter", enableMethod = () => disableFpsCounter = true, disableMethod = () => disableFpsCounter = false, toolTip = "Disables the FPS counter." },
+                new ButtonInfo { buttonText = "Slow FPS Counter", enableMethod = () => fpsCountTimed = true, disableMethod = () => fpsCountTimed = false, toolTip = "Updates the FPS counter less often." },
+                new ButtonInfo { buttonText = "Average FPS Counter", enableMethod = () => fpsCountAverage = true, disableMethod = () => fpsCountAverage = false, toolTip = "Smooths out FPS values." },
+                new ButtonInfo { buttonText = "Frametime Counter", enableMethod = () => ftCount = true, disableMethod = () => ftCount = false, toolTip = "Shows frametime (ms) instead of FPS." },
+                new ButtonInfo { buttonText = "Hand Fly <color=grey>[</color><color=green>A</color><color=grey>]</color>", method = Movement.HandFly, toolTip = "Sends your character in your hand's direction when holding <color=green>A</color>." },
+                new ButtonInfo { buttonText = "Info Screen", method = Debug, enableMethod = ShowDebug, disableMethod = HideDebug, toolTip = "Shows FPS, ping, and room details." },
+                new ButtonInfo { buttonText = "Change Notification Scale", overlapText = "Change Notification Scale <color=grey>[</color><color=green>6</color><color=grey>]</color>", method = () => ChangeNotificationScale(), enableMethod = () => ChangeNotificationScale(), disableMethod = () => ChangeNotificationScale(false), incremental = true, isTogglable = false, toolTip = "Changes notification text scale." },
+                new ButtonInfo { buttonText = "Change Overlay Scale", overlapText = "Change Overlay Scale <color=grey>[</color><color=green>6</color><color=grey>]</color>", method = () => ChangeOverlayScale(), enableMethod = () => ChangeOverlayScale(), disableMethod = () => ChangeOverlayScale(false), incremental = true, isTogglable = false, toolTip = "Changes overlay text scale." }
+            };
+
+            Buttons.buttons[Buttons.GetCategory("Temporary Category")] = buttons.ToArray();
+            Buttons.CurrentCategoryName = "Temporary Category";
+        }
+
         public static void ChangeMenuTheme(bool increment = true)
         {
             if (increment) 
@@ -3182,6 +3403,21 @@ exit 0";
             }
         }
 
+        public static void ApplyMenuThemePreset(int themeId, string themeName = null)
+        {
+            const int themeCount = 66;
+            if (themeId < 1 || themeId > themeCount)
+                return;
+
+            themeType = themeId - 1;
+            ChangeMenuTheme();
+
+            if (!string.IsNullOrEmpty(themeName))
+                NotificationManager.SendNotification($"<color=grey>[</color><color=purple>THEME</color><color=grey>]</color> Applied <color=green>{themeName}</color>.");
+
+            ReloadMenu();
+        }
+
         private static int menuScaleIndex = 10;
         public static void ChangeMenuScale(bool positive = true)
         {
@@ -4544,7 +4780,6 @@ exit 0";
                 return;
             }
 
-            PromptText("What would you like the room code to be?", () => Overpowered.specificRoom = keyboardInput.ToUpper(), () => Toggle("Kick to Specific Room"), "Done", "Cancel");
         }
         public static void ChangePointerPosition(bool positive = true)
         {
@@ -5051,11 +5286,16 @@ exit 0";
 
         private static LineRenderer clickGuiLine;
         private static bool lastTriggerClick;
+        private static float nextJoystickScrollTime;
+        private const float ClickGuiJoystickScrollStep = 0.02f;
+        private const float ClickGuiJoystickScrollDelay = 0.16f;
+        private const float ClickGuiJoystickScrollDeadzone = 0.30f;
 
         private static EventSystem eventSystem;
         private static PointerEventData pointerData;
         private static readonly List<RaycastResult> uiResults = new List<RaycastResult>();
         private static GameObject currentUI;
+        private static GameObject clickGuiCursor;
 
         private static GameObject pressedUI;
         private static GameObject draggedUI;
@@ -5069,26 +5309,38 @@ exit 0";
 
         public static void EnableClickGUI()
         {
-            clickGUI = true; 
+            clickGUI = true;
+            ApplyFloatingGuiTheme();
             ReloadMenu();
 
+            Buttons.OnCategoryChanged -= ReloadOnCategoryChange;
             Buttons.OnCategoryChanged += ReloadOnCategoryChange;
         }
 
         public static void DisableClickGUI()
         {
-            clickGUI = false;
+            clickGUI = true;
+            ApplyFloatingGuiTheme();
             Buttons.OnCategoryChanged -= ReloadOnCategoryChange;
+            Buttons.OnCategoryChanged += ReloadOnCategoryChange;
 
-            if (clickGuiLine != null)
+            if (clickGuiCursor != null)
             {
-                Object.Destroy(clickGuiLine.gameObject);
-                clickGuiLine = null;
+                Object.Destroy(clickGuiCursor);
+                clickGuiCursor = null;
             }
+
+            ReloadMenu();
         }
 
         public static void InitializeClickGUI()
         {
+            clickGUI = true;
+            ApplyFloatingGuiTheme();
+
+            Buttons.OnCategoryChanged -= ReloadOnCategoryChange;
+            Buttons.OnCategoryChanged += ReloadOnCategoryChange;
+
             canvas = menu.transform.Find("Canvas").GetComponent<Canvas>();
             
             if (!XRSettings.isDeviceActive)
@@ -5101,6 +5353,14 @@ exit 0";
 
             Transform canvasTransform = canvas.gameObject.transform;
             canvasTransform.Find("Main").AddComponent<UIColorChanger>().colors = backgroundColor;
+
+            TextMeshProUGUI sidebarTitle = canvasTransform.Find("Main/Sidebar/Title")?.GetComponent<TextMeshProUGUI>();
+            if (sidebarTitle != null)
+                sidebarTitle.SafeSetText("Crystal Menu");
+
+            TextMeshProUGUI sidebarWatermark = canvasTransform.Find("Main/Sidebar/Watermark")?.GetComponent<TextMeshProUGUI>();
+            if (sidebarWatermark != null)
+                sidebarWatermark.SafeSetText("CM");
 
             ExtGradient sidebarColor = buttonColors[1].Clone();
             for (int i = 0; i < sidebarColor.colors.Length; i++)
@@ -5129,7 +5389,7 @@ exit 0";
             Transform sidebarTransform = canvasTransform.Find("Main/Sidebar");
             foreach (string buttonName in new[]
             {
-                "Settings", "Players", "Friends"
+                "Settings", "Players"
             })
                 sidebarTransform.Find(buttonName).GetComponent<Button>().onClick.AddListener(() =>
                 {
@@ -5145,7 +5405,6 @@ exit 0";
             string[] ignoreButtons = {
                 "Join Discord",
                 "Settings",
-                "Friends",
                 "Players",
                 "Favorite Mods",
                 "Enabled Mods",
@@ -5159,12 +5418,18 @@ exit 0";
                 "Sound Mods",
                 "Projectile Mods",
                 "Master Mods",
-                "Overpowered Mods",
-                "Experimental Mods",
                 "Detected Mods",
                 "Achievements",
                 "Credits"
             };
+
+            static string FormatSidebarTabName(string tabName)
+            {
+                if (tabName == "Home")
+                    return "Home";
+
+                return tabName.Replace(" Mods", "").Replace(" Settings", "");
+            }
 
             GameObject otherBase = canvasTransform.Find("Main/Sidebar/Scroll View/Viewport/Content/Other").gameObject;
             foreach (ButtonInfo button in Buttons.buttons[Buttons.GetCategory("Main")])
@@ -5174,7 +5439,7 @@ exit 0";
                     GameObject otherButton = Object.Instantiate(otherBase, canvasTransform.Find("Main/Sidebar/Scroll View/Viewport/Content"), false);
                     otherButton.SetActive(true);
                     otherButton.name = button.buttonText;
-                    otherButton.transform.Find("Title").GetComponent<TextMeshProUGUI>().SafeSetText(button.buttonText);
+                    otherButton.transform.Find("Title").GetComponent<TextMeshProUGUI>().SafeSetText(FormatSidebarTabName(button.buttonText));
                 }
             }
 
@@ -5182,6 +5447,8 @@ exit 0";
             {
                 if (!tab.activeSelf)
                     continue;
+
+                tab.transform.Find("Title").GetComponent<TextMeshProUGUI>().SafeSetText(FormatSidebarTabName(tab.name));
 
                 toRecolor.Add(tab.transform.Find("Title").GetComponent<MaskableGraphic>());
                 toRecolor.Add(tab.transform.Find("Image").GetComponent<MaskableGraphic>());
@@ -5211,6 +5478,9 @@ exit 0";
             GameObject buttonTemplate = canvasTransform.Find("Main/Button").gameObject;
             void AddButton(Transform parent, ButtonInfo info)
             {
+                static bool CanFavorite(ButtonInfo targetInfo) =>
+                    !targetInfo.label && !targetInfo.incremental && !targetInfo.buttonText.StartsWith("Exit ");
+
                 static void UpdateButton(GameObject button, ButtonInfo info)
                 {
                     Transform transform = button.transform;
@@ -5222,6 +5492,7 @@ exit 0";
                     buttonText = FixTMProTags(buttonText);
                     buttonText = FollowMenuSettings(buttonText);
 
+                    bool canFavorite = CanFavorite(info);
                     transform.Find("Title").GetComponent<TextMeshProUGUI>().SafeSetText(buttonText);
                     transform.Find("Title").GetComponent<TextMeshProUGUI>().spriteAsset = ButtonSpriteSheet;
 
@@ -5237,6 +5508,22 @@ exit 0";
 
                     transform.Find("Title").GetComponent<TextMeshProUGUI>().Chams();
                     transform.Find("ToolTip").GetComponent<TextMeshProUGUI>().Chams();
+
+                    Transform favoriteTransform = transform.Find("FavoriteToggle");
+                    if (favoriteTransform != null)
+                    {
+                        favoriteTransform.gameObject.SetActive(canFavorite);
+                        TextMeshProUGUI favoriteText = favoriteTransform.Find("Text")?.GetComponent<TextMeshProUGUI>();
+                        if (favoriteText != null)
+                        {
+                            favoriteText.SafeSetText(favorites.Contains(info.buttonText)
+                                ? "<color=#FFD54A>FAV</color>"
+                                : "<color=#808080>FAV</color>");
+                            favoriteText.SafeSetFont(activeFont);
+                            favoriteText.SafeSetFontStyle(activeFontStyle);
+                            favoriteText.Chams();
+                        }
+                    }
 
                     button.name = buttonText;
 
@@ -5291,6 +5578,59 @@ exit 0";
                 UpdateButton(button, info);
 
                 Transform transform = button.transform;
+                if (CanFavorite(info))
+                {
+                    Transform favoriteTransform = transform.Find("FavoriteToggle");
+                    if (favoriteTransform == null)
+                    {
+                        GameObject favoriteObject = new GameObject("FavoriteToggle");
+                        favoriteObject.transform.SetParent(transform, false);
+
+                        RectTransform favoriteRect = favoriteObject.AddComponent<RectTransform>();
+                        favoriteRect.anchorMin = new Vector2(1f, 0.5f);
+                        favoriteRect.anchorMax = new Vector2(1f, 0.5f);
+                        favoriteRect.pivot = new Vector2(1f, 0.5f);
+                        favoriteRect.anchoredPosition = new Vector2(-52f, 0f);
+                        favoriteRect.sizeDelta = new Vector2(34f, 34f);
+
+                        Image favoriteImage = favoriteObject.AddComponent<Image>();
+                        favoriteImage.color = new Color(1f, 1f, 1f, 0.01f);
+
+                        Button favoriteButton = favoriteObject.AddComponent<Button>();
+
+                        GameObject starTextObject = new GameObject("Text");
+                        starTextObject.transform.SetParent(favoriteObject.transform, false);
+
+                        RectTransform starTextRect = starTextObject.AddComponent<RectTransform>();
+                        starTextRect.anchorMin = Vector2.zero;
+                        starTextRect.anchorMax = Vector2.one;
+                        starTextRect.offsetMin = Vector2.zero;
+                        starTextRect.offsetMax = Vector2.zero;
+
+                        TextMeshProUGUI starText = starTextObject.AddComponent<TextMeshProUGUI>();
+                        starText.alignment = TextAlignmentOptions.Center;
+                        starText.fontSize = 30f;
+                        starText.raycastTarget = false;
+
+                        favoriteButton.onClick.AddListener(() =>
+                        {
+                            if (favorites.Contains(info.buttonText))
+                            {
+                                favorites.Remove(info.buttonText);
+                                NotificationManager.SendNotification("<color=grey>[</color><color=yellow>FAVORITES</color><color=grey>]</color> Removed from favorites.");
+                            }
+                            else
+                            {
+                                favorites.Add(info.buttonText);
+                                NotificationManager.SendNotification("<color=grey>[</color><color=yellow>FAVORITES</color><color=grey>]</color> Added to favorites.");
+                            }
+
+                            PlayButtonSound();
+                            UpdateButton(button, info);
+                        });
+                    }
+                }
+
                 if (info.incremental)
                     {
                         transform.Find("Increment").GetComponent<Button>().onClick.AddListener(() =>
@@ -5319,7 +5659,31 @@ exit 0";
 
             if (CurrentPrompt != null)
             {
-                canvasTransform.Find("Main/PromptTab").gameObject.SetActive(true);
+                GameObject promptTab = canvasTransform.Find("Main/PromptTab").gameObject;
+                promptTab.SetActive(true);
+
+                Transform homeTab = canvasTransform.Find("Main/HomeTab");
+                if (homeTab != null)
+                    homeTab.gameObject.SetActive(false);
+
+                Transform moduleTab = canvasTransform.Find("Main/ModuleTab");
+                if (moduleTab != null)
+                    moduleTab.gameObject.SetActive(false);
+
+                Image promptTabImage = promptTab.GetComponent<Image>();
+                if (promptTabImage != null)
+                {
+                    ExtGradient promptBackgroundColor = backgroundColor.Clone();
+                    for (int i = 0; i < promptBackgroundColor.colors.Length; i++)
+                    {
+                        GradientColorKey colorKey = promptBackgroundColor.colors[i];
+                        Color opaqueColor = DarkenColor(colorKey.color, 0.45f);
+                        opaqueColor.a = 1f;
+                        promptBackgroundColor.colors[i] = new GradientColorKey { time = colorKey.time, color = opaqueColor };
+                    }
+
+                    promptTabImage.gameObject.GetOrAddComponent<UIColorChanger>().colors = promptBackgroundColor;
+                }
 
                 foreach (string partName in new[]
                     {
@@ -5330,12 +5694,22 @@ exit 0";
                     toRecolor.Add(canvasTransform.Find(partName).GetComponent<MaskableGraphic>());
 
                 GameObject title = canvasTransform.Find("Main/PromptTab/Title").gameObject;
-                title.GetComponent<TextMeshProUGUI>().SafeSetText(CurrentPrompt.Message);
+                string promptTitleText = CurrentPrompt.Message;
+                string promptImageToken = ExtractPromptImage(promptTitleText);
+                if (!promptImageToken.IsNullOrEmpty())
+                    promptTitleText = promptTitleText.Replace($"<{promptImageToken}>", string.Empty);
+
+                TextMeshProUGUI titleText = title.GetComponent<TextMeshProUGUI>();
+                titleText.SafeSetText(promptTitleText.Trim());
+                titleText.enableAutoSizing = true;
+                titleText.fontSizeMin = 18f;
+                titleText.fontSizeMax = 46f;
+                titleText.alignment = TextAlignmentOptions.Center;
 
                 GameObject accept = canvasTransform.Find("Main/PromptTab/Accept").gameObject;
                 accept.transform.Find("Text").GetComponent<TextMeshProUGUI>().SafeSetText(CurrentPrompt.AcceptText);
                 accept.transform.Find("Text").GetComponent<TextMeshProUGUI>().Chams();
-                accept.GetOrAddComponent<UIColorChanger>().colors = buttonColors[0];
+                accept.GetOrAddComponent<UIColorChanger>().colors = buttonColors[1];
                 accept.GetComponent<Button>().onClick.AddListener(() =>
                 {
                     Toggle("Accept Prompt");
@@ -5369,7 +5743,7 @@ exit 0";
             else if (Buttons.CurrentCategoryIndex == 0)
             {
                 canvasTransform.Find("Main/HomeTab").gameObject.SetActive(true);
-                canvasTransform.Find("Main/HomeTab/Title").GetComponent<TextMeshProUGUI>().SafeSetText($"Hey, {PhotonNetwork.NickName ?? "null"}!");
+                canvasTransform.Find("Main/HomeTab/Title").GetComponent<TextMeshProUGUI>().SafeSetText("Welcome to Crystal Menu");
 
                 if (Buttons.CurrentCategoryIndex == 0)
                 {
@@ -5445,7 +5819,14 @@ exit 0";
                 }
 
                 Transform searchBar = canvasTransform.Find("Main/ModuleTab/Search");
+                if (searchBar != null)
+                    searchBar.gameObject.SetActive(!disableSearchButton);
+
                 TMP_InputField inputField = searchBar.GetComponent<TMP_InputField>();
+
+                inputField.onSelect.RemoveAllListeners();
+                inputField.onDeselect.RemoveAllListeners();
+                inputField.onValueChanged.RemoveAllListeners();
 
                 inputField.onSelect.AddListener(_ =>
                 {
@@ -5457,6 +5838,12 @@ exit 0";
                 {
                     if (isSearching && keyboardInput.IsNullOrEmpty())
                         Search();
+                });
+
+                inputField.onValueChanged.AddListener(text =>
+                {
+                    keyboardInput = text;
+                    UpdateSearch();
                 });
             }
 
@@ -5482,22 +5869,58 @@ exit 0";
 
         public static void UpdateSearch()
         {
-            Transform searchBar = canvas.transform.Find("Main/ModuleTab/Search");
-            TMP_InputField inputField = searchBar.GetComponent<TMP_InputField>();
+            if (disableSearchButton)
+                return;
 
-            inputField.text = keyboardInput;
-            foreach (GameObject button in canvas.transform.Find("Main/ModuleTab/Modules/Viewport/Content").Children())
-                button.SetActive(keyboardInput.IsNullOrEmpty() || button.name.ClearTags().Replace(" ", "").ToLower().Contains(keyboardInput.Replace(" ", "").ToLower()));
+            if (canvas == null)
+                return;
+
+            Transform searchBar = canvas.transform.Find("Main/ModuleTab/Search");
+            if (searchBar == null)
+                return;
+
+            TMP_InputField inputField = searchBar.GetComponent<TMP_InputField>();
+            if (inputField == null)
+                return;
+
+            Transform modulesContent = canvas.transform.Find("Main/ModuleTab/Modules/Viewport/Content");
+            if (modulesContent == null)
+                return;
+
+            if (!inputField.isFocused && inputField.text != keyboardInput)
+                inputField.SetTextWithoutNotify(keyboardInput);
+
+            string sanitizedQuery = NoRichtextTags((keyboardInput ?? string.Empty).ClearTags())
+                .Replace(" ", string.Empty)
+                .ToLowerInvariant();
+
+            foreach (GameObject button in modulesContent.Children())
+            {
+                TextMeshProUGUI titleText = button.transform.Find("Title")?.GetComponent<TextMeshProUGUI>();
+                string candidate = titleText != null ? titleText.text : (button.name ?? string.Empty);
+                candidate = NoRichtextTags(candidate.ClearTags()).Replace(" ", string.Empty).ToLowerInvariant();
+
+                button.SetActive(string.IsNullOrEmpty(sanitizedQuery) || candidate.Contains(sanitizedQuery));
+            }
         }
 
         public static void ClickGUI()
         {
+            clickGUI = true;
+            ApplyFloatingGuiTheme();
+
             if (menu == null)
             {
                 if (clickGuiLine != null)
                 {
                     Object.Destroy(clickGuiLine.gameObject);
                     clickGuiLine = null;
+                }
+
+                if (clickGuiCursor != null)
+                {
+                    Object.Destroy(clickGuiCursor);
+                    clickGuiCursor = null;
                 }
             }
             else
@@ -5510,7 +5933,10 @@ exit 0";
                     TMP_InputField inputField = searchBar.GetComponent<TMP_InputField>();
 
                     if (inputField.text != keyboardInput)
+                    {
+                        keyboardInput = inputField.text;
                         UpdateSearch();
+                    }
                 }
 
                 if (!XRSettings.isDeviceActive)
@@ -5543,6 +5969,11 @@ exit 0";
                 pointerData ??= new PointerEventData(eventSystem);
 
                 bool useLeft = rightHand || (bothHands && ControllerInputPoller.instance.rightControllerSecondaryButton);
+                bool leftSelecting = leftTrigger > 0.2f;
+                bool rightSelecting = rightTrigger > 0.2f;
+
+                if (leftSelecting ^ rightSelecting)
+                    useLeft = leftSelecting;
 
                 var (_, _, _, forward, _) = useLeft
                     ? ControllerUtilities.GetTrueLeftHand()
@@ -5569,13 +6000,78 @@ exit 0";
                 clickGuiLine.SetPosition(0, startPos);
                 clickGuiLine.SetPosition(1, endPos);
 
+                if (clickGuiCursor == null)
+                {
+                    clickGuiCursor = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    clickGuiCursor.name = "iiMenu_ClickGUICursor";
+                    Object.Destroy(clickGuiCursor.GetComponent<Collider>());
+                    clickGuiCursor.transform.localScale = Vector3.one * 0.03f;
+
+                    var renderer = clickGuiCursor.GetComponent<Renderer>();
+                    renderer.material = new Material(Shader.Find("GUI/Text Shader"));
+                }
+
+                clickGuiCursor.transform.position = endPos;
+                clickGuiCursor.transform.rotation = Quaternion.identity;
+
+                Renderer cursorRenderer = clickGuiCursor.GetComponent<Renderer>();
+                cursorRenderer.material.color = currentUI != null ? buttonColors[1].GetCurrentColor() : backgroundColor.GetCurrentColor();
+                clickGuiCursor.SetActive(XRSettings.isDeviceActive);
+
                 bool trigger = useLeft ? leftTrigger > 0.5f : rightTrigger > 0.5f;
                 Vector2 currentPos = pointerData.position;
                 pointerData.delta = currentPos - lastPointerPos;
                 lastPointerPos = currentPos;
 
+                if (Time.time >= nextJoystickScrollTime && Mathf.Abs(leftJoystick.y) > ClickGuiJoystickScrollDeadzone)
+                {
+                    ScrollRect targetScrollRect = null;
+
+                    foreach (var result in uiResults)
+                    {
+                        targetScrollRect = result.gameObject.GetComponentInParent<ScrollRect>();
+                        if (targetScrollRect != null)
+                            break;
+                    }
+
+                    if (targetScrollRect == null)
+                    {
+                        Transform moduleScroll = canvas.transform.Find("Main/ModuleTab/Modules");
+                        Transform enabledScroll = canvas.transform.Find("Main/HomeTab/Enabled");
+                        Transform favoritesScroll = canvas.transform.Find("Main/HomeTab/Favorites");
+                        Transform sidebarScroll = canvas.transform.Find("Main/Sidebar/Scroll View");
+
+                        if (moduleScroll != null && moduleScroll.gameObject.activeInHierarchy)
+                            targetScrollRect = moduleScroll.GetComponent<ScrollRect>();
+                        else if (enabledScroll != null && enabledScroll.gameObject.activeInHierarchy)
+                            targetScrollRect = enabledScroll.GetComponent<ScrollRect>();
+                        else if (favoritesScroll != null && favoritesScroll.gameObject.activeInHierarchy)
+                            targetScrollRect = favoritesScroll.GetComponent<ScrollRect>();
+                        else if (sidebarScroll != null && sidebarScroll.gameObject.activeInHierarchy)
+                            targetScrollRect = sidebarScroll.GetComponent<ScrollRect>();
+                    }
+
+                    if (targetScrollRect != null)
+                    {
+                        float delta = Mathf.Sign(leftJoystick.y) * ClickGuiJoystickScrollStep;
+                        targetScrollRect.verticalNormalizedPosition = Mathf.Clamp01(targetScrollRect.verticalNormalizedPosition + delta);
+                        nextJoystickScrollTime = Time.time + ClickGuiJoystickScrollDelay;
+                    }
+                }
+
+                bool directButtonHandled = false;
                 if (trigger && !lastTriggerClick && currentUI != null)
                 {
+                    TMP_InputField hoveredInputField = currentUI.GetComponentInParent<TMP_InputField>();
+                    Button parentButton = hoveredInputField == null ? currentUI.GetComponentInParent<Button>() : null;
+                    if (parentButton != null)
+                    {
+                        parentButton.onClick.Invoke();
+                        directButtonHandled = true;
+                    }
+
+                    if (!directButtonHandled)
+                    {
                     GameObject targetUI = null;
                     foreach (var result in uiResults)
                     {
@@ -5601,51 +6097,55 @@ exit 0";
                     isDragging = false;
                     draggedUI = ExecuteEvents.GetEventHandler<IDragHandler>(currentUI);
                     pointerData.pointerDrag = draggedUI ?? null;
+                    }
                 }
 
-                switch (trigger)
+                if (!directButtonHandled)
                 {
-                    case true when draggedUI != null:
-                        {
-                            if (!isDragging)
+                    switch (trigger)
+                    {
+                        case true when draggedUI != null:
                             {
-                                if (Vector2.Distance(pointerData.pressPosition, currentPos) > 15f)
+                                if (!isDragging)
                                 {
-                                    isDragging = true;
-                                    ExecuteEvents.Execute(draggedUI, pointerData, ExecuteEvents.beginDragHandler);
-
-                                    if (pressedUI != null && pressedUI != draggedUI)
+                                    if (Vector2.Distance(pointerData.pressPosition, currentPos) > 15f)
                                     {
-                                        ExecuteEvents.Execute(pressedUI, pointerData, ExecuteEvents.pointerUpHandler);
-                                        pointerData.pointerPress = null;
+                                        isDragging = true;
+                                        ExecuteEvents.Execute(draggedUI, pointerData, ExecuteEvents.beginDragHandler);
+
+                                        if (pressedUI != null && pressedUI != draggedUI)
+                                        {
+                                            ExecuteEvents.Execute(pressedUI, pointerData, ExecuteEvents.pointerUpHandler);
+                                            pointerData.pointerPress = null;
+                                        }
                                     }
                                 }
-                            }
 
-                            if (isDragging)
-                                ExecuteEvents.Execute(draggedUI, pointerData, ExecuteEvents.dragHandler);
-                            break;
-                        }
-                    case false when lastTriggerClick:
-                        {
-                            if (pressedUI != null && !isDragging)
+                                if (isDragging)
+                                    ExecuteEvents.Execute(draggedUI, pointerData, ExecuteEvents.dragHandler);
+                                break;
+                            }
+                        case false when lastTriggerClick:
                             {
-                                ExecuteEvents.Execute(pressedUI, pointerData, ExecuteEvents.pointerUpHandler);
-                                ExecuteEvents.Execute(pressedUI, pointerData, ExecuteEvents.pointerClickHandler);
+                                if (pressedUI != null && !isDragging)
+                                {
+                                    ExecuteEvents.Execute(pressedUI, pointerData, ExecuteEvents.pointerUpHandler);
+                                    ExecuteEvents.Execute(pressedUI, pointerData, ExecuteEvents.pointerClickHandler);
+                                }
+                                else if (pressedUI != null)
+                                    ExecuteEvents.Execute(pressedUI, pointerData, ExecuteEvents.pointerUpHandler);
+
+                                if (isDragging && draggedUI != null)
+                                    ExecuteEvents.Execute(draggedUI, pointerData, ExecuteEvents.endDragHandler);
+
+                                pressedUI = null;
+                                draggedUI = null;
+                                pointerData.pointerDrag = null;
+                                pointerData.pointerPress = null;
+                                isDragging = false;
+                                break;
                             }
-                            else if (pressedUI != null)
-                                ExecuteEvents.Execute(pressedUI, pointerData, ExecuteEvents.pointerUpHandler);
-
-                            if (isDragging && draggedUI != null)
-                                ExecuteEvents.Execute(draggedUI, pointerData, ExecuteEvents.endDragHandler);
-
-                            pressedUI = null;
-                            draggedUI = null;
-                            pointerData.pointerDrag = null;
-                            pointerData.pointerPress = null;
-                            isDragging = false;
-                            break;
-                        }
+                    }
                 }
 
                 lastTriggerClick = trigger;
@@ -5914,8 +6414,8 @@ exit 0";
                 Projectiles.green.ToString(),
                 Projectiles.blue.ToString(),
                 Safety.rankIndex.ToString(),
-                Overpowered.snowballScale.ToString(),
-                Overpowered.lagIndex.ToString(),
+                "0", // [37] reserved (removed feature placeholder)
+                "0", // [38] reserved (removed feature placeholder)
                 Fun.blockDebounceIndex.ToString(),
                 Fun.nameCycleIndex.ToString(),
                 menuScaleIndex.ToString(),
@@ -5927,7 +6427,7 @@ exit 0";
                 ((int)MathF.Ceiling(playTime)).ToString(),
                 PhotonNetwork.LocalPlayer?.UserId ?? "null",
                 _pageSize.ToString(),
-                Overpowered.snowballMultiplicationFactor.ToString(),
+                "0", // [50] reserved (removed feature placeholder)
                 menuButtonIndex.ToString(),
                 Safety.targetElo.ToString(),
                 Safety.targetBadge.ToString(),
@@ -5942,8 +6442,8 @@ exit 0";
                 Movement.fakeLagDelayIndex.ToString(),
                 Projectiles.snowballIndex.ToString(),
                 characterDistance.ToString(),
-                Overpowered.lagTypeIndex.ToString(),
-                Overpowered.masterVisualizationType.ToString(),
+                "0", // [65] reserved (removed feature placeholder)
+                "0", // [66] reserved (removed feature placeholder)
                 Movement.targetHz.ToString(),
                 Safety.pingSpoofValue.ToString()
             };
@@ -5997,8 +6497,22 @@ exit 0";
             return finaltext;
         }
 
-        public static void SavePreferences() =>
-            File.WriteAllText($"{PluginInfo.BaseDirectory}/iiMenu_Preferences.txt", SavePreferencesToText());
+        public static string GetPreferencesDirectory() =>
+            Path.Combine(FileUtilities.GetGamePath(), "Crystal Menu");
+
+        public static string GetPreferencesFilePath() =>
+            Path.Combine(GetPreferencesDirectory(), "iiMenu_Preferences.txt");
+
+        private static string GetLegacyPreferencesFilePath() =>
+            $"{PluginInfo.BaseDirectory}/iiMenu_Preferences.txt";
+
+        public static void SavePreferences()
+        {
+            string preferencesDirectory = GetPreferencesDirectory();
+            Directory.CreateDirectory(preferencesDirectory);
+
+            File.WriteAllText(GetPreferencesFilePath(), SavePreferencesToText());
+        }
 
         public static int loadingPreferencesFrame;
         public static void LoadPreferencesFromText(string text)
@@ -6006,16 +6520,26 @@ exit 0";
             loadingPreferencesFrame = Time.frameCount;
 
             Panic();
-            string[] textData = text.Split("\n");
+            string[] textData = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
 
-            string[] activebuttons = textData[0].Split(";;");
+            string[] activebuttons = textData.Length > 0
+                ? textData[0].Split(new[] { ";;" }, StringSplitOptions.RemoveEmptyEntries)
+                : Array.Empty<string>();
             for (int index = 0; index < activebuttons.Length; index++)
-                Toggle(activebuttons[index]);
+            {
+                if (!string.IsNullOrWhiteSpace(activebuttons[index]))
+                    Toggle(activebuttons[index]);
+            }
 
-            string[] favoritesarray = textData[1].Split(";;");
+            string[] favoritesarray = textData.Length > 1
+                ? textData[1].Split(new[] { ";;" }, StringSplitOptions.RemoveEmptyEntries)
+                : Array.Empty<string>();
             favorites.Clear();
             foreach (string favorite in favoritesarray)
-                favorites.Add(favorite);
+            {
+                if (!string.IsNullOrWhiteSpace(favorite))
+                    favorites.Add(favorite);
+            }
 
             try
             {
@@ -6131,11 +6655,7 @@ exit 0";
                 Safety.rankIndex = int.Parse(data[36]) - 1;
                 Safety.ChangeRankedTier();
 
-                Overpowered.snowballScale = int.Parse(data[37]) - 1;
-                Overpowered.ChangeSnowballScale();
 
-                Overpowered.lagIndex = int.Parse(data[38]) - 1;
-                Overpowered.ChangeLagPower();
 
                 Fun.blockDebounceIndex = int.Parse(data[39]) - 1;
                 Fun.ChangeBlockDelay();
@@ -6168,8 +6688,6 @@ exit 0";
                 _pageSize = int.Parse(data[49]) - 1;
                 ChangePageSize();
 
-                Overpowered.snowballMultiplicationFactor = int.Parse(data[50]) - 1;
-                Overpowered.ChangeSnowballMultiplicationFactor();
 
                 menuButtonIndex = int.Parse(data[51]) - 1;
                 ChangeMenuButton();
@@ -6213,11 +6731,7 @@ exit 0";
                 characterDistance = int.Parse(data[64]) - 1;
                 ChangeCharacterDistance();
 
-                Overpowered.lagTypeIndex = int.Parse(data[65]) - 1;
-                Overpowered.ChangeLagType();
 
-                Overpowered.masterVisualizationType = int.Parse(data[66]) - 1;
-                Overpowered.MasterVisualizationType();
 
                 Movement.targetHz = int.Parse(data[67]) - 500;
                 Movement.ChangeTinnitusHz();
@@ -6227,32 +6741,50 @@ exit 0";
             }
             catch { LogManager.Log("Save file out of date"); }
 
-            pageButtonType = int.Parse(textData[3]) - 1;
-            Toggle("Change Page Type");
-            themeType = int.Parse(textData[4]) - 1;
-            Toggle("Change Menu Theme");
-            fontCycle = int.Parse(textData[5]) - 1;
-            Toggle("Change Font Type");
+            try
+            {
+                if (textData.Length > 3 && int.TryParse(textData[3], out int parsedPageButtonType))
+                {
+                    pageButtonType = parsedPageButtonType - 1;
+                    Toggle("Change Page Type");
+                }
+
+                if (textData.Length > 4 && int.TryParse(textData[4], out int parsedThemeType))
+                {
+                    themeType = parsedThemeType - 1;
+                    Toggle("Change Menu Theme");
+                }
+
+                if (textData.Length > 5 && int.TryParse(textData[5], out int parsedFontCycle))
+                {
+                    fontCycle = parsedFontCycle - 1;
+                    Toggle("Change Font Type");
+                }
+            }
+            catch { }
 
             try
             {
-                foreach (string Bindings in textData[6].Split("~~"))
+                if (textData.Length > 6)
                 {
-                    if (Bindings.Contains(";;"))
+                    foreach (string Bindings in textData[6].Split("~~"))
                     {
-                        string[] BindData = Bindings.Split(";;");
-                        string BindName = BindData[0];
-
-                        List<string> Binds = new List<string>();
-
-                        for (int i = 1; i < BindData.Length; i++)
+                        if (Bindings.Contains(";;"))
                         {
-                            string ModName = BindData[i];
-                            if (Buttons.GetIndex(ModName) != null)
-                                Binds.Add(ModName);
-                        }
+                            string[] BindData = Bindings.Split(";;");
+                            string BindName = BindData[0];
 
-                        ModBindings[BindName] = Binds;
+                            List<string> Binds = new List<string>();
+
+                            for (int i = 1; i < BindData.Length; i++)
+                            {
+                                string ModName = BindData[i];
+                                if (Buttons.GetIndex(ModName) != null)
+                                    Binds.Add(ModName);
+                            }
+
+                            ModBindings[BindName] = Binds;
+                        }
                     }
                 }
             } catch { }
@@ -6260,53 +6792,84 @@ exit 0";
             try
             {
                 quickActions.Clear();
-                foreach (string quickAction in textData[7].Split(";;"))
+                if (textData.Length > 7)
                 {
-                    ButtonInfo button = Buttons.GetIndex(quickAction);
-                    if (button != null)
-                        quickActions.Add(quickAction);
+                    foreach (string quickAction in textData[7].Split(new[] { ";;" }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        ButtonInfo button = Buttons.GetIndex(quickAction);
+                        if (button != null)
+                            quickActions.Add(quickAction);
+                    }
                 }
             } catch { }
             
             try
             {
-                foreach (string bind in textData[8].Split(";;"))
+                if (textData.Length > 8)
                 {
-                    string rebindText = bind.Split(";")[0];
-                    string rebindKey = bind.Split(";")[1];
-                    ButtonInfo button = Buttons.GetIndex(rebindText);
-                    if (button != null)
-                        button.rebindKey = rebindKey;
+                    foreach (string bind in textData[8].Split(new[] { ";;" }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        string[] bindData = bind.Split(';');
+                        if (bindData.Length < 2)
+                            continue;
+
+                        string rebindText = bindData[0];
+                        string rebindKey = bindData[1];
+                        ButtonInfo button = Buttons.GetIndex(rebindText);
+                        if (button != null)
+                            button.rebindKey = rebindKey;
+                    }
                 }
             } catch { }
 
             try
             {
                 skipButtons.Clear();
-                foreach (string skipButton in textData[9].Split(";;"))
+                if (textData.Length > 9)
                 {
-                    ButtonInfo button = Buttons.GetIndex(skipButton);
-                    if (button != null)
-                        skipButtons.Add(skipButton);
+                    foreach (string skipButton in textData[9].Split(new[] { ";;" }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        ButtonInfo button = Buttons.GetIndex(skipButton);
+                        if (button != null)
+                            skipButtons.Add(skipButton);
+                    }
                 }
             } catch { }
-
-            hasLoadedPreferences = true;
         }
 
         public static void LoadPreferences()
         {
             try
             {
-                if (!File.Exists($"{PluginInfo.BaseDirectory}/iiMenu_Preferences.txt"))
+                string preferencesDirectory = GetPreferencesDirectory();
+                string preferencesFilePath = GetPreferencesFilePath();
+                string legacyPreferencesFilePath = GetLegacyPreferencesFilePath();
+
+                Directory.CreateDirectory(preferencesDirectory);
+
+                if (!File.Exists(preferencesFilePath) && File.Exists(legacyPreferencesFilePath))
+                {
+                    File.Copy(legacyPreferencesFilePath, preferencesFilePath, true);
+                    LogManager.Log("Migrated preferences file to Crystal Menu folder.");
+                }
+
+                if (!File.Exists(preferencesFilePath))
                 {
                     hasLoadedPreferences = true;
                     return;
                 }
 
-                string text = File.ReadAllText($"{PluginInfo.BaseDirectory}/iiMenu_Preferences.txt");
+                string text = File.ReadAllText(preferencesFilePath);
                 LoadPreferencesFromText(text);
-            } catch (Exception e) { LogManager.Log("Error loading preferences: " + e.Message); }
+            }
+            catch (Exception e)
+            {
+                LogManager.Log("Error loading preferences: " + e.Message);
+            }
+            finally
+            {
+                hasLoadedPreferences = true;
+            }
         }
 
         public static void Panic()

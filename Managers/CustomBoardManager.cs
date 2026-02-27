@@ -1,9 +1,9 @@
-﻿/*
+/*
  * ii's Stupid Menu  Managers/CustomBoardManager.cs
  * A mod menu for Gorilla Tag with over 1000+ mods
  *
  * Copyright (C) 2026  Goldentrophy Software
- * https://github.com/iiDk-the-actual/iis.Stupid.Menu
+ * https://github.com/CrystalMenu/CrystalMenu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ namespace iiMenu.Managers
             SceneManager.sceneLoaded += SceneLoaded;
         }
 
-        private static bool _customBoardsEnabled = true;
+        private static bool _customBoardsEnabled = false;
         public static bool CustomBoardsEnabled
         {
             get => _customBoardsEnabled;
@@ -151,7 +151,7 @@ namespace iiMenu.Managers
         private static Material _screenRed;
         private static Material _screenBlack;
 
-        public static bool CustomBoardTextEnabled = true;
+        public static bool CustomBoardTextEnabled = false;
         private static Material _boardMaterial = new Material(Shader.Find("GorillaTag/UberShader"));
         public static Material BoardMaterial
         {
@@ -192,6 +192,12 @@ namespace iiMenu.Managers
         {
             if (!hasFoundAllBoards)
             {
+                if (!CustomBoardsEnabled)
+                {
+                    hasFoundAllBoards = true;
+                }
+                else
+                {
                 try
                 {
                     foreach (GameObject board in objectBoards.Values)
@@ -292,16 +298,20 @@ namespace iiMenu.Managers
                     LogManager.LogError($"Error with board colors at {exc.StackTrace}: {exc.Message}");
                     hasFoundAllBoards = false;
                 }
+                }
             }
 
             if (computerMonitor == null)
                 computerMonitor = GetObject("Environment Objects/LocalObjects_Prefab/TreeRoom/TreeRoomInteractables/GorillaComputerObject/ComputerUI/monitor/monitorScreen");
 
-            if (computerMonitor != null)
+            if (CustomBoardsEnabled && computerMonitor != null)
                 computerMonitor.GetComponent<Renderer>().material = BoardMaterial;
 
             try
             {
+                if (!CustomBoardsEnabled)
+                    return;
+
                 BoardMaterial.color = CustomBoardsEnabled ? backgroundColor.GetCurrentColor() : (Color)new Color32(0, 59, 4, 255);
 
                 if (motdTitle == null)
@@ -317,7 +327,7 @@ namespace iiMenu.Managers
 
                 motdHeadingText.richText = true;
                 motdHeadingText.SafeSetFontSize(100);
-                motdHeadingText.SafeSetText($"Thanks for using {(doCustomName ? customMenuName : "ii's <b>Stupid</b> Menu")}!");
+                motdHeadingText.SafeSetText($"Thanks for using {(doCustomName ? customMenuName : "Crystal Menu")}!");
                 motdHeadingText.SafeSetFontStyle(activeFontStyle);
                 motdHeadingText.SafeSetFont(activeFont);
                 FollowMenuSettings(motdHeadingText, -4f);

@@ -3,7 +3,7 @@
  * A mod menu for Gorilla Tag with over 1000+ mods
  *
  * Copyright (C) 2026  Goldentrophy Software
- * https://github.com/iiDk-the-actual/iis.Stupid.Menu
+ * https://github.com/CrystalMenu/CrystalMenu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -137,11 +137,26 @@ namespace iiMenu.Managers
         {
             try
             {
-                if (!hasInitialized && Camera.main != null)
+                if (!hasInitialized)
                 {
+                    if (Camera.main == null)
+                        return;
+
                     Init();
                     hasInitialized = true;
                 }
+
+                if (mainCamera == null || canvas == null || notificationText == null || arraylistText == null || informationText == null)
+                {
+                    hasInitialized = false;
+                    return;
+                }
+
+                if (Camera.main == null)
+                    return;
+
+                if (mainCamera != Camera.main.gameObject)
+                    mainCamera = Camera.main.gameObject;
 
                 canvas.GetComponent<CanvasScaler>().dynamicPixelsPerUnit = 2f;
 
@@ -181,7 +196,7 @@ namespace iiMenu.Managers
 
                 if (information.Count > 0)
                 {
-                    Color targetColor = Buttons.GetIndex("Swap GUI Colors").enabled ? buttonColors[1].GetCurrentColor() : backgroundColor.GetCurrentColor();
+                    Color targetColor = IsButtonEnabled("Swap GUI Colors") ? buttonColors[1].GetCurrentColor() : backgroundColor.GetCurrentColor();
 
                     List<string> statsLines = information
                         .Select(item => $"<color=#{ColorToHex(targetColor)}>{item.Key}</color> <color=#{ColorToHex(textColors[1].GetColor(0))}>{item.Value}</color>")
@@ -241,7 +256,7 @@ namespace iiMenu.Managers
                         }
 
                         arraylistText.SafeSetText(modListText);
-                        arraylistText.color = Buttons.GetIndex("Swap GUI Colors").enabled ? textColors[1].GetColor(0) : backgroundColor.GetCurrentColor();
+                        arraylistText.color = IsButtonEnabled("Swap GUI Colors") ? textColors[1].GetColor(0) : backgroundColor.GetCurrentColor();
                     }
                 }
                 else if (!arraylistText.text.IsNullOrEmpty())
@@ -271,9 +286,15 @@ namespace iiMenu.Managers
                         informationText.SafeSetText(informationText.text.ToUpper());
                 }
 
-                canvas.layer = Buttons.GetIndex("Hide Notifications on Camera").enabled ? 19 : 0;
+                canvas.layer = IsButtonEnabled("Hide Notifications on Camera") ? 19 : 0;
             }
             catch (Exception e) { LogManager.Log(e); }
+        }
+
+        private static bool IsButtonEnabled(string buttonName)
+        {
+            ButtonInfo button = Buttons.GetIndex(buttonName);
+            return button != null && button.enabled;
         }
 
         /// <summary>
@@ -294,7 +315,7 @@ namespace iiMenu.Managers
             if (clearTime < 0)
                 clearTime = notificationDecayTime;
 
-            if (disableNotifications && !Buttons.GetIndex("Conduct Notifications").enabled) return;
+            if (disableNotifications && !IsButtonEnabled("Conduct Notifications")) return;
             try
             {
                 if (translate)

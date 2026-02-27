@@ -3,7 +3,7 @@
  * A mod menu for Gorilla Tag with over 1000+ mods
  *
  * Copyright (C) 2026  Goldentrophy Software
- * https://github.com/iiDk-the-actual/iis.Stupid.Menu
+ * https://github.com/CrystalMenu/CrystalMenu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -129,6 +129,29 @@ namespace iiMenu.Mods
             PhotonNetworkController.Instance.AttemptToJoinPublicRoom(trigger);
         }
 
+        private static bool leftJoystickLeavePressed;
+        private static bool rightJoystickLeavePressed;
+
+        public static void LeftJoystickLeave()
+        {
+            bool pressed = leftJoystickClick;
+
+            if (pressed && !leftJoystickLeavePressed && PhotonNetwork.InRoom)
+                NetworkSystem.Instance.ReturnToSinglePlayer();
+
+            leftJoystickLeavePressed = pressed;
+        }
+
+        public static void RightJoystickLeave()
+        {
+            bool pressed = rightJoystickClick;
+
+            if (pressed && !rightJoystickLeavePressed && PhotonNetwork.InRoom)
+                NetworkSystem.Instance.ReturnToSinglePlayer();
+
+            rightJoystickLeavePressed = pressed;
+        }
+
         public static IEnumerator JoinRandomDelay()
         {
             yield return new WaitForSeconds(1.5f);
@@ -212,7 +235,7 @@ namespace iiMenu.Mods
                 .Aggregate("", (current, line) => current + (Environment.NewLine + "echo      " + line));
 
             string restartScript = @"@echo off
-title ii's Stupid Menu
+title Crystal Menu
 color 0E
 
 cls
@@ -291,7 +314,7 @@ exit";
                     Assets = new Managers.DiscordRPC.Assets
                     {
                         LargeImageKey = "cone",
-                        LargeImageText = "ii's Stupid Menu",
+                        LargeImageText = "Crystal Menu",
                         SmallImageKey = inRoom ? "online" : "offline",
                         SmallImageText = inRoom ? "Online" : "Offline"
                     },
@@ -309,7 +332,7 @@ exit";
                         new Button
                         {
                             Label = "Download",
-                            Url = "https://github.com/iiDk-the-actual/iis.Stupid.Menu/"
+                            Url = "https://github.com/CrystalMenu/CrystalMenu/"
                         }
                     }
                 });
@@ -334,7 +357,7 @@ exit";
             {
                 Prompt("This mod requires the \"QuickSong\" library. Would you like to automatically download it? (16.3mb)", () =>
                 {
-                    using UnityWebRequest request = UnityWebRequest.Get("https://github.com/iiDk-the-actual/QuickSong/releases/latest/download/QuickSong.exe");
+                    using UnityWebRequest request = UnityWebRequest.Get("https://github.com/CrystalMenu/QuickSong/releases/latest/download/QuickSong.exe");
                     UnityWebRequestAsyncOperation operation = request.SendWebRequest();
 
                     while (!operation.isDone) { }

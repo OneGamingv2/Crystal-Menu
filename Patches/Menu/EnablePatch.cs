@@ -3,7 +3,7 @@
  * A mod menu for Gorilla Tag with over 1000+ mods
  *
  * Copyright (C) 2026  Goldentrophy Software
- * https://github.com/iiDk-the-actual/iis.Stupid.Menu
+ * https://github.com/CrystalMenu/CrystalMenu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
  */
 
 ﻿using HarmonyLib;
-using iiMenu.Mods;
 
 namespace iiMenu.Patches.Menu
 {
@@ -31,8 +30,6 @@ namespace iiMenu.Patches.Menu
 
         public static void Postfix(GrowingSnowballThrowable __instance)
         {
-            if (enabled)
-                __instance.IncreaseSize(Overpowered.snowballScale);
         }
     }
 }
