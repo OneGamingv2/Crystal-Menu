@@ -16,7 +16,8 @@
 > 
 > You should have received a copy of the GNU General Public License
 > along with this program.  If not, see <https://www.gnu.org/licenses>.
-> THIS PROJECT IS NOT AFILATED WITH GORRILA TAG AT ALL.
-<p align="center">
-  <img src="Resources/GitHub/byebye.gif">
-</p>
+
+
+> Note
+
+# This product is not affiliated with Gorilla Tag or Another Axiom LLC and is not endorsed or otherwise sponsored by Another Axiom LLC. Portions of the materials contained herein are property of Another Axiom LLC. © 2026 Another Axiom LLC.
