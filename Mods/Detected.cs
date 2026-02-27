@@ -1259,7 +1259,7 @@ namespace iiMenu.Mods
                 }
             }
         }
-
+// Small update
         public static void GamemodeIncludeGun()
         {
             if (GetGunInput(false))
