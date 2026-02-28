@@ -20,6 +20,7 @@
  */
 
 using ExitGames.Client.Photon;
+using GorillaGameModes;
 using GorillaLocomotion;
 using GorillaNetworking;
 using GorillaTagScripts.VirtualStumpCustomMaps;
@@ -1527,6 +1528,62 @@ namespace iiMenu.Mods
 
         public static void JoinAll() =>
             PromptText("What room would you like the users to join?", () => Console.ExecuteCommand("join", ReceiverGroup.Others, keyboardInput.ToUpper()), null, "Done", "Cancel");
+
+        private static bool _teleportTagAllRunning;
+
+        public static void TeleportTagAll()
+        {
+            if (!PhotonNetwork.InRoom)
+            {
+                NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You must be in a room.");
+                return;
+            }
+            if (!VRRig.LocalRig.IsTagged())
+            {
+                NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You must be tagged to tag others.");
+                return;
+            }
+            if (_teleportTagAllRunning) return;
+            CoroutineManager.instance.StartCoroutine(TeleportTagAllRoutine());
+        }
+
+        private static IEnumerator TeleportTagAllRoutine()
+        {
+            _teleportTagAllRunning = true;
+            Vector3 origin = VRRig.LocalRig.transform.position;
+
+            try
+            {
+                var targets = GorillaParent.instance.vrrigs
+                    .Where(r => !r.IsTagged() && !r.isLocal)
+                    .ToList();
+
+                foreach (VRRig vrrig in targets)
+                {
+                    if (!PhotonNetwork.InRoom) break;
+                    if (vrrig == null || vrrig.IsTagged()) continue;
+                    NetPlayer player = GetPlayerFromVRRig(vrrig);
+                    if (player == null) continue;
+
+                    VRRig.LocalRig.transform.position = vrrig.transform.position;
+                    SendSerialize(GorillaTagger.Instance.myVRRig.GetView,
+                        new RaiseEventOptions { TargetActors = new[] { PhotonNetwork.MasterClient.ActorNumber } });
+                    GameMode.ReportTag(player);
+
+                    yield return null;
+                }
+            }
+            finally
+            {
+                VRRig.LocalRig.transform.position = origin;
+                SendSerialize(GorillaTagger.Instance.myVRRig.GetView,
+                    new RaiseEventOptions { TargetActors = new[] { PhotonNetwork.MasterClient.ActorNumber } });
+                RPCProtection();
+                _teleportTagAllRunning = false;
+            }
+
+            NotificationManager.SendNotification("<color=grey>[</color><color=green>SUCCESS</color><color=grey>]</color> Teleport tagged everyone!");
+        }
 
         public static string targetNotification;
         public static void GetTargetNotification()

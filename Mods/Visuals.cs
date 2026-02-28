@@ -420,115 +420,78 @@ namespace iiMenu.Mods
             }
         }
 
+        private static TextMeshPro _watchTMP;
+        private static List<GameObject> _watchPips = new List<GameObject>();
+
         public static void WatchOn()
         {
-            GameObject mainwatch = VRRig.LocalRig.transform.Find("rig/hand.L/huntcomputer (1)").gameObject;
-            regwatchobject = Object.Instantiate(mainwatch, rightHand ? VRRig.LocalRig.transform.Find("rig/hand.R").transform : VRRig.LocalRig.transform.Find("rig/hand.L").transform, false);
-            Object.Destroy(regwatchobject.GetComponent<GorillaHuntComputer>());
-            regwatchobject.SetActive(true);
+            if (VRRig.LocalRig == null) return;
 
-            Transform thething = regwatchobject.transform.Find("HuntWatch_ScreenLocal/Canvas/Anchor");
-            thething.Find("Hat").gameObject.SetActive(false);
-            thething.Find("Face").gameObject.SetActive(false);
-            thething.Find("Badge").gameObject.SetActive(false);
-            thething.Find("Material").gameObject.SetActive(false);
-            thething.Find("Left Hand").gameObject.SetActive(false);
-            thething.Find("Right Hand").gameObject.SetActive(false);
+            string handPath = rightHand ? "rig/hand.R" : "rig/hand.L";
+            Transform handBone = VRRig.LocalRig.transform.Find(handPath);
+            if (handBone == null) return;
 
-            regwatchText = thething.Find("Text").gameObject;
-            regwatchShell = regwatchobject.transform.Find("HuntWatch_ScreenLocal").gameObject;
+            _watchPips.Clear();
 
-            regwatchShell.GetComponent<Renderer>().material = CustomBoardManager.BoardMaterial;
+            // ── Root container (empty, carries position/rotation) ──
+            regwatchobject = new GameObject("iiMenu_InfoWatch");
+            regwatchobject.transform.SetParent(handBone, false);
+            regwatchobject.transform.localPosition = rightHand
+                ? new Vector3(-0.02f, -0.05f, 0.015f)
+                : new Vector3(0.02f, -0.05f, 0.015f);
+            regwatchobject.transform.localRotation = rightHand
+                ? Quaternion.Euler(0f, 180f, 0f)
+                : Quaternion.identity;
 
-            if (rightHand)
+            // ── Watch face (flat cube) ──
+            regwatchShell = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            Object.Destroy(regwatchShell.GetComponent<BoxCollider>());
+            regwatchShell.name = "WatchFace";
+            regwatchShell.transform.SetParent(regwatchobject.transform, false);
+            regwatchShell.transform.localPosition = Vector3.zero;
+            regwatchShell.transform.localRotation = Quaternion.identity;
+            regwatchShell.transform.localScale = new Vector3(0.062f, 0.080f, 0.009f);
+            Renderer faceRenderer = regwatchShell.GetComponent<Renderer>();
+            if (faceRenderer != null && CustomBoardManager.BoardMaterial != null)
+                faceRenderer.material = CustomBoardManager.BoardMaterial;
+
+            // ── 8 pip dot markers in a ring around the face ──
+            Material pipMat = new Material(Shader.Find("GUI/Text Shader"));
+            for (int i = 0; i < 8; i++)
             {
-                regwatchShell.transform.localRotation = Quaternion.Euler(0f, 140f, 0f);
-                regwatchShell.transform.parent.localPosition += new Vector3(0.025f, 0f, 0f);
-                regwatchShell.transform.localPosition += new Vector3(0.025f, 0f, -0.035f);
+                float angle = i * Mathf.PI * 2f / 8f - Mathf.PI / 2f; // start from top
+                float px = Mathf.Cos(angle) * 0.034f;
+                float py = Mathf.Sin(angle) * 0.044f;
+
+                GameObject pip = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                Object.Destroy(pip.GetComponent<SphereCollider>());
+                pip.name = "Pip" + i;
+                pip.transform.SetParent(regwatchobject.transform, false);
+                pip.transform.localPosition = new Vector3(px, py, -0.006f);
+                pip.transform.localScale = new Vector3(0.007f, 0.007f, 0.004f);
+                pip.GetComponent<Renderer>().material = pipMat;
+                _watchPips.Add(pip);
             }
 
-            CreateCustomWatchPanel();
+            // ── TMP text on top of face ──
+            // NOTE: TMP in world-space uses world units for fontSize.
+            // The watch face is ~6cm wide, so font sizes must be in the 0.005–0.015 range.
+            regwatchText = new GameObject("WatchText");
+            regwatchText.transform.SetParent(regwatchobject.transform, false);
+            _watchTMP = regwatchText.AddComponent<TextMeshPro>();
+            if (activeFont != null) _watchTMP.font = activeFont;
+            _watchTMP.alignment = TextAlignmentOptions.Center;
+            _watchTMP.enableAutoSizing = true;
+            _watchTMP.fontSizeMin = 0.004f;
+            _watchTMP.fontSizeMax = 0.014f;
+            _watchTMP.richText = true;
+            _watchTMP.overflowMode = TextOverflowModes.Overflow;
+            _watchTMP.rectTransform.sizeDelta = new Vector2(0.054f, 0.072f);
+            _watchTMP.rectTransform.localPosition = new Vector3(0f, 0f, -0.006f);
+            _watchTMP.rectTransform.localRotation = Quaternion.identity;
         }
 
-        private static GameObject customWatchPanel;
-        private static GameObject customWatchHeader;
-        private static GameObject customWatchButtonDisconnect;
-        private static GameObject customWatchButtonRandom;
-        private static TextMeshPro customWatchHeaderText;
-        private static bool customWatchPanelOpen;
         private static bool customWatchClickLatch;
-        private static bool customWatchActionLatch;
-
-        private static void CreateCustomWatchPanel()
-        {
-            Transform watchHand = rightHand
-                ? VRRig.LocalRig.transform.Find("rig/hand.R")
-                : VRRig.LocalRig.transform.Find("rig/hand.L");
-
-            if (watchHand == null)
-                return;
-
-            customWatchPanel = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            customWatchPanel.name = "iiMenu_CustomWatchPanel";
-            customWatchPanel.transform.SetParent(watchHand, false);
-            customWatchPanel.transform.localScale = new Vector3(0.09f, 0.12f, 0.0125f);
-            customWatchPanel.transform.localPosition = new Vector3(0f, 0.015f, 0.065f);
-            customWatchPanel.transform.localRotation = Quaternion.Euler(rightHand ? 20f : -20f, rightHand ? 160f : -160f, 0f);
-            customWatchPanel.GetComponent<Renderer>().material = new Material(Shader.Find("GUI/Text Shader"));
-
-            customWatchHeader = new GameObject("Header");
-            customWatchHeader.transform.SetParent(customWatchPanel.transform, false);
-            customWatchHeaderText = customWatchHeader.AddComponent<TextMeshPro>();
-            customWatchHeaderText.font = activeFont;
-            customWatchHeaderText.alignment = TextAlignmentOptions.Center;
-            customWatchHeaderText.enableAutoSizing = true;
-            customWatchHeaderText.fontSizeMin = 0.2f;
-            customWatchHeaderText.fontSizeMax = 3f;
-            customWatchHeaderText.rectTransform.sizeDelta = new Vector2(0.15f, 0.06f);
-            customWatchHeaderText.rectTransform.localPosition = new Vector3(0f, 0.03f, -0.02f);
-            customWatchHeaderText.rectTransform.localRotation = Quaternion.identity;
-
-            customWatchButtonDisconnect = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            customWatchButtonDisconnect.name = "DisconnectButton";
-            customWatchButtonDisconnect.transform.SetParent(customWatchPanel.transform, false);
-            customWatchButtonDisconnect.transform.localScale = new Vector3(0.07f, 0.03f, 0.01f);
-            customWatchButtonDisconnect.transform.localPosition = new Vector3(0f, -0.005f, -0.005f);
-            customWatchButtonDisconnect.GetComponent<Renderer>().material = new Material(Shader.Find("GUI/Text Shader"));
-
-            TextMeshPro disconnectText = new GameObject("Text").AddComponent<TextMeshPro>();
-            disconnectText.transform.SetParent(customWatchButtonDisconnect.transform, false);
-            disconnectText.font = activeFont;
-            disconnectText.alignment = TextAlignmentOptions.Center;
-            disconnectText.text = "Disconnect";
-            disconnectText.enableAutoSizing = true;
-            disconnectText.fontSizeMin = 0.2f;
-            disconnectText.fontSizeMax = 2.5f;
-            disconnectText.rectTransform.sizeDelta = new Vector2(0.16f, 0.04f);
-            disconnectText.rectTransform.localPosition = new Vector3(0f, 0f, -0.01f);
-
-            customWatchButtonRandom = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            customWatchButtonRandom.name = "RandomButton";
-            customWatchButtonRandom.transform.SetParent(customWatchPanel.transform, false);
-            customWatchButtonRandom.transform.localScale = new Vector3(0.07f, 0.03f, 0.01f);
-            customWatchButtonRandom.transform.localPosition = new Vector3(0f, -0.045f, -0.005f);
-            customWatchButtonRandom.GetComponent<Renderer>().material = new Material(Shader.Find("GUI/Text Shader"));
-
-            TextMeshPro randomText = new GameObject("Text").AddComponent<TextMeshPro>();
-            randomText.transform.SetParent(customWatchButtonRandom.transform, false);
-            randomText.font = activeFont;
-            randomText.alignment = TextAlignmentOptions.Center;
-            randomText.text = "Join Random";
-            randomText.enableAutoSizing = true;
-            randomText.fontSizeMin = 0.2f;
-            randomText.fontSizeMax = 2.5f;
-            randomText.rectTransform.sizeDelta = new Vector2(0.16f, 0.04f);
-            randomText.rectTransform.localPosition = new Vector3(0f, 0f, -0.01f);
-
-            customWatchPanelOpen = false;
-            customWatchPanel.SetActive(false);
-            customWatchClickLatch = false;
-            customWatchActionLatch = false;
-        }
 
         private static TMP_SpriteAsset _infoSpriteAsset;
         public static TMP_SpriteAsset InfoSprites
@@ -631,101 +594,93 @@ namespace iiMenu.Mods
         public static bool infoWatchCode;
         public static void WatchStep()
         {
-            bool defaultWatch = !infoWatchMenuName && !infoWatchTime && !infoWatchClip && !infoWatchFPS && !infoWatchCode;
-            string watchText = "";
-
-            Text watchTextComponent = regwatchText.GetComponent<Text>();
-
-            if (infoWatchMenuName || defaultWatch) watchTextComponent.text = "Crystal Menu\n<color=grey>";
-            if (doCustomName && (infoWatchMenuName || defaultWatch))
-                watchTextComponent.text = NoRichtextTags(customMenuName) + "\n<color=grey>";
-            if (!infoWatchMenuName && !defaultWatch)
-                watchTextComponent.text = "<color=grey>";
-            
-            if (infoWatchFPS || defaultWatch) watchText += lastDeltaTime + " FPS\n";
-            watchText += PhotonNetwork.GetPing() + " Ping\n";
-            if (infoWatchTime || defaultWatch) watchText += DateTime.Now.ToString("hh:mm tt") + "\n";
-            if (infoWatchCode) watchText += (PhotonNetwork.InRoom ? PhotonNetwork.CurrentRoom.Name : "Not in room") + "\n";
-            if (infoWatchClip) watchText += "Clip: " + (GUIUtility.systemCopyBuffer.Length > 20 ? GUIUtility.systemCopyBuffer[..20] : GUIUtility.systemCopyBuffer) + "\n";
-
-            watchText += "</color>";
-            watchTextComponent.color = textColors[0].GetCurrentColor();
-            watchTextComponent.text += watchText;
-            if (lowercaseMode)
-                watchTextComponent.text = watchTextComponent.text.ToLower();
-            if (uppercaseMode)
-                watchTextComponent.text = watchTextComponent.text.ToUpper();
-
-            if (customWatchPanel != null)
+            if (regwatchobject == null)
             {
-                bool clickInput = rightHand ? leftTrigger > 0.75f : rightTrigger > 0.75f;
-                Transform clickHand = rightHand ? GorillaTagger.Instance.leftHandTransform : GorillaTagger.Instance.rightHandTransform;
-                bool nearWatch = clickHand != null && regwatchShell != null && Vector3.Distance(clickHand.position, regwatchShell.transform.position) < 0.12f;
+                if (VRRig.LocalRig != null)
+                    try { WatchOn(); } catch { }
+                return;
+            }
 
-                if (clickInput && !customWatchClickLatch && nearWatch)
+            // ── Update pip colors to match current theme ──
+            if (_watchPips != null && buttonColors != null)
+            {
+                Color pipColor = buttonColors[0].GetCurrentColor();
+                foreach (GameObject pip in _watchPips)
                 {
-                    customWatchPanelOpen = !customWatchPanelOpen;
-                    customWatchPanel.SetActive(customWatchPanelOpen);
-                }
-                customWatchClickLatch = clickInput;
-
-                if (customWatchPanelOpen)
-                {
-                    customWatchPanel.GetComponent<Renderer>().material.color = DarkenColor(backgroundColor.GetCurrentColor(), 0.35f);
-
-                    if (customWatchHeaderText != null)
-                    {
-                        customWatchHeaderText.SafeSetFont(activeFont);
-                        customWatchHeaderText.SafeSetFontStyle(activeFontStyle);
-                        customWatchHeaderText.color = textColors[1].GetCurrentColor();
-                        customWatchHeaderText.text = $"{lastDeltaTime} FPS  {PhotonNetwork.GetPing()} Ping";
-                    }
-
-                    customWatchButtonDisconnect.GetComponent<Renderer>().material.color = buttonColors[0].GetCurrentColor();
-                    customWatchButtonRandom.GetComponent<Renderer>().material.color = buttonColors[1].GetCurrentColor();
-
-                    bool nearDisconnect = clickHand != null && Vector3.Distance(clickHand.position, customWatchButtonDisconnect.transform.position) < 0.06f;
-                    bool nearRandom = clickHand != null && Vector3.Distance(clickHand.position, customWatchButtonRandom.transform.position) < 0.06f;
-
-                    if (clickInput && !customWatchActionLatch)
-                    {
-                        if (nearDisconnect && PhotonNetwork.InRoom)
-                        {
-                            NetworkSystem.Instance.ReturnToSinglePlayer();
-                            customWatchPanelOpen = false;
-                            customWatchPanel.SetActive(false);
-                        }
-                        else if (nearRandom)
-                        {
-                            Important.JoinRandom();
-                            customWatchPanelOpen = false;
-                            customWatchPanel.SetActive(false);
-                        }
-                    }
-
-                    customWatchActionLatch = clickInput;
-                }
-                else
-                {
-                    customWatchActionLatch = false;
+                    if (pip == null) continue;
+                    Renderer r = pip.GetComponent<Renderer>();
+                    if (r != null) r.material.color = pipColor;
                 }
             }
+
+            // ── Update watch face text ──
+            if (_watchTMP != null)
+            {
+                _watchTMP.SafeSetFont(activeFont);
+                _watchTMP.SafeSetFontStyle(activeFontStyle);
+                _watchTMP.color = textColors[0].GetCurrentColor();
+
+                bool defaultMode = !infoWatchMenuName && !infoWatchTime && !infoWatchFPS && !infoWatchCode && !infoWatchClip;
+
+                System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
+                if (infoWatchMenuName || defaultMode)
+                {
+                    string name = doCustomName ? NoRichtextTags(customMenuName) : "Crystal Menu";
+                    sb.AppendLine(name);
+                }
+
+                if (infoWatchTime || defaultMode)
+                    sb.AppendLine(DateTime.Now.ToString("hh:mm tt"));
+
+                if (infoWatchFPS || defaultMode)
+                    sb.AppendLine($"{lastDeltaTime} FPS  {PhotonNetwork.GetPing()} ms");
+
+                if (infoWatchCode)
+                    sb.AppendLine(PhotonNetwork.InRoom ? PhotonNetwork.CurrentRoom.Name : "offline");
+
+                if (infoWatchClip)
+                {
+                    string cb = GUIUtility.systemCopyBuffer;
+                    sb.AppendLine(cb.Length > 12 ? cb[..12] : cb);
+                }
+
+                string full = sb.ToString().TrimEnd();
+                if (lowercaseMode) full = full.ToLower();
+                if (uppercaseMode) full = full.ToUpper();
+                _watchTMP.text = full;
+            }
+
+            // ── Click watch face with opposite hand → join random room ──
+            try
+            {
+                bool triggerDown = rightHand ? leftTrigger > 0.75f : rightTrigger > 0.75f;
+                Transform clickHand = rightHand
+                    ? GorillaTagger.Instance.leftHandTransform
+                    : GorillaTagger.Instance.rightHandTransform;
+                bool nearFace = clickHand != null && regwatchShell != null &&
+                    Vector3.Distance(clickHand.position, regwatchShell.transform.position) < 0.10f;
+
+                if (triggerDown && !customWatchClickLatch && nearFace)
+                {
+                    Important.JoinRandom();
+                    NotificationManager.SendNotification("<color=grey>[</color><color=green>WATCH</color><color=grey>]</color> Joining random room...");
+                }
+                customWatchClickLatch = triggerDown;
+            }
+            catch { }
         }
 
         public static void WatchOff()
         {
-            Object.Destroy(regwatchobject);
-            if (customWatchPanel != null)
-                Object.Destroy(customWatchPanel);
+            if (regwatchobject != null) Object.Destroy(regwatchobject);
 
-            customWatchPanel = null;
-            customWatchHeader = null;
-            customWatchButtonDisconnect = null;
-            customWatchButtonRandom = null;
-            customWatchHeaderText = null;
-            customWatchPanelOpen = false;
+            regwatchobject = null;
+            regwatchText = null;
+            regwatchShell = null;
+            _watchTMP = null;
+            _watchPips?.Clear();
             customWatchClickLatch = false;
-            customWatchActionLatch = false;
         }
 
         public static Material oldSkyMat;

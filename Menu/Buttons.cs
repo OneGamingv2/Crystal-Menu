@@ -67,7 +67,6 @@ namespace iiMenu.Menu
                 new ButtonInfo { buttonText = "Projectile Mods", method =() => CurrentCategoryName = "Projectile Mods", isTogglable = false, toolTip = "Opens the projectile mods."},
                 new ButtonInfo { buttonText = "Sound Mods", method =() => CurrentCategoryName = "Sound Mods", isTogglable = false, toolTip = "Opens the sound mods."},
                 new ButtonInfo { buttonText = "Room Mods", method =() => CurrentCategoryName = "Room Mods", isTogglable = false, toolTip = "Opens the room mods."},
-                new ButtonInfo { buttonText = "Detected Mods", method = Detected.EnterDetectedTab, isTogglable = false, toolTip = "Opens the detected mods."},
 
                 new ButtonInfo { buttonText = "Achievements", method = AchievementManager.EnterAchievementTab, isTogglable = false, toolTip = "Opens the achievements page."},
                 new ButtonInfo { buttonText = "Credits", method =() => CurrentCategoryName = "Credits", isTogglable = false, toolTip = "Opens the credits page."}
@@ -91,8 +90,8 @@ namespace iiMenu.Menu
                 new ButtonInfo { buttonText = "Advantage Settings", method =() => CurrentCategoryName = "Advantage Settings", isTogglable = false, toolTip = "Opens the settings for the advantage mods."},
                 new ButtonInfo { buttonText = "Visual Settings", method =() => CurrentCategoryName = "Visual Settings", isTogglable = false, toolTip = "Opens the settings for the visual mods."},
                 new ButtonInfo { buttonText = "Fun Settings", method =() => CurrentCategoryName = "Fun Settings", isTogglable = false, toolTip = "Opens the settings for the fun mods."},
-                new ButtonInfo { buttonText = "Detected Settings", method =() => CurrentCategoryName = "Detected Settings", isTogglable = false, toolTip = "Opens the settings for the detected mods."},
-                new ButtonInfo { buttonText = "Projectile Settings", method =() => CurrentCategoryName = "Projectile Settings", isTogglable = false, toolTip = "Opens the settings for the projectiles."}
+                new ButtonInfo { buttonText = "Projectile Settings", method =() => CurrentCategoryName = "Projectile Settings", isTogglable = false, toolTip = "Opens the settings for the projectiles."},
+                new ButtonInfo { buttonText = "Gun Settings", method =() => CurrentCategoryName = "Gun Settings", isTogglable = false, toolTip = "Opens the settings for the gun mods."}
             },
 
             new[] { // Menu Settings [2]
@@ -177,22 +176,6 @@ namespace iiMenu.Menu
                 new ButtonInfo { buttonText = "Change Narration Voice", overlapText = "Change Narration Voice <color=grey>[</color><color=green>Default</color><color=grey>]</color>", method =() => Settings.ChangeNarrationVoice(), enableMethod =() => Settings.ChangeNarrationVoice(), disableMethod =() => Settings.ChangeNarrationVoice(false), incremental = true, isTogglable = false, toolTip = "Changes the voice of the narrator."},
 
                 new ButtonInfo { buttonText = "Swap Ghostview Colors", toolTip = "Swaps the ghostview's colors to the enabled color, for darker themes."},
-
-                new ButtonInfo { buttonText = "Change Gun Line Quality", overlapText = "Change Gun Line Quality <color=grey>[</color><color=green>Normal</color><color=grey>]</color>", method =() => Settings.ChangeGunLineQuality(), enableMethod =() => Settings.ChangeGunLineQuality(), disableMethod =() => Settings.ChangeGunLineQuality(false), incremental = true, isTogglable = false, toolTip = "Changes the amount of points on your gun."},
-                new ButtonInfo { buttonText = "Change Gun Variation", overlapText = "Change Gun Variation <color=grey>[</color><color=green>Default</color><color=grey>]</color>", method =() => Settings.ChangeGunVariation(), enableMethod =() => Settings.ChangeGunVariation(), disableMethod =() => Settings.ChangeGunVariation(false), incremental = true, isTogglable = false, toolTip = "Changes the look of the gun."},
-                new ButtonInfo { buttonText = "Change Gun Direction", overlapText = "Change Gun Direction <color=grey>[</color><color=green>Default</color><color=grey>]</color>", method =() => Settings.ChangeGunDirection(), enableMethod =() => Settings.ChangeGunDirection(), disableMethod =() => Settings.ChangeGunDirection(false), incremental = true, isTogglable = false, toolTip = "Changes the direction of the gun."},
-
-                new ButtonInfo { buttonText = "Gun Sounds", enableMethod =() => GunSounds = true, disableMethod =() => GunSounds = false, toolTip = "Plays laser sounds when interacting with the gun."},
-                new ButtonInfo { buttonText = "Gun Vibrations", enableMethod =() => GunVibrations = true, disableMethod =() => GunVibrations = false, toolTip = "Vibrates your controller when interacting with the gun."},
-                new ButtonInfo { buttonText = "Gun Particles", enableMethod =() => GunParticles = true, disableMethod =() => GunParticles = false, toolTip = "Gives the gun particles when you shoot it."},
-                new ButtonInfo { buttonText = "Swap Gun Hand", enableMethod =() => SwapGunHand = true, disableMethod =() => SwapGunHand = false, toolTip = "Swaps the hand gun mods work with."},
-                new ButtonInfo { buttonText = "Gripless Guns", enableMethod =() => GriplessGuns = true, disableMethod =() => GriplessGuns = false, toolTip = "Forces your grip to be held for guns."},
-                new ButtonInfo { buttonText = "Triggerless Guns", enableMethod =() => TriggerlessGuns = true, disableMethod =() => TriggerlessGuns = false, toolTip = "Forces your trigger to be held for guns."},
-                new ButtonInfo { buttonText = "Hard Gun Lock", enableMethod =() => HardGunLocks = true, disableMethod =() => HardGunLocks = false, toolTip = "Locks the guns even when letting go of grip until you press <color=green>B</color>."},
-                new ButtonInfo { buttonText = "Small Gun Pointer", enableMethod =() => smallGunPointer = true, disableMethod =() => smallGunPointer = false, toolTip = "Makes the ball at the end of every gun mod smaller."},
-                new ButtonInfo { buttonText = "Smooth Gun Pointer", enableMethod =() => SmoothGunPointer = true, disableMethod =() => SmoothGunPointer = false, toolTip = "Makes the ball at the end of every gun mod smoother."},
-                new ButtonInfo { buttonText = "Disable Gun Pointer", enableMethod =() => disableGunPointer = true, disableMethod =() => disableGunPointer = false, toolTip = "Disables the ball at the end of every gun mod."},
-                new ButtonInfo { buttonText = "Disable Gun Line", enableMethod =() => disableGunLine = true, disableMethod =() => disableGunLine = false, toolTip = "Disables the gun from your hand to the end of every gun mod."},
 
                 new ButtonInfo { buttonText = "Checkbox Buttons", enableMethod =() => checkMode = true, disableMethod =() => checkMode = false, toolTip = "Turns the buttons into checkboxes."},
                 new ButtonInfo { buttonText = "Change Button Sound", overlapText = "Change Button Sound <color=grey>[</color><color=green>Wood</color><color=grey>]</color>", method =() => Settings.ChangeButtonSound(true, true), enableMethod =() => Settings.ChangeButtonSound(true, true), disableMethod =() => Settings.ChangeButtonSound(false, true), incremental = true, isTogglable = false, toolTip = "Changes the button click sound."},
@@ -768,6 +751,7 @@ namespace iiMenu.Menu
                 new ButtonInfo { buttonText = "Tag Self", method = Advantages.TagSelf, disableMethod = Movement.EnableRig, toolTip = "Attempts to tags yourself."},
                 new ButtonInfo { buttonText = "Tag Gun", method = Advantages.TagGun, toolTip = "Tags whoever your hand desires."},
                 new ButtonInfo { buttonText = "Tag All", method = Advantages.TagAll, disableMethod = Movement.EnableRig, toolTip = "Attempts to tag everyone in the the room."},
+                new ButtonInfo { buttonText = "Teleport Tag All", method = Experimental.TeleportTagAll, isTogglable = false, toolTip = "Instantly teleports to each player and tags them one by one. Must be tagged." },
 
                 new ButtonInfo { buttonText = "Tag Aura", aliases = new[] { "Tag Range" }, method = Advantages.TagAura, toolTip = "Moves your hand into nearby players when tagged."},
                 new ButtonInfo { buttonText = "Grip Tag Aura <color=grey>[</color><color=green>G</color><color=grey>]</color>", aliases = new[] { "Grip Tag Range" }, method = Advantages.GripTagAura, toolTip = "Moves your hand into nearby players when tagged and when holding <color=green>grip</color>."},
@@ -852,7 +836,7 @@ namespace iiMenu.Menu
 
                 new ButtonInfo { buttonText = "Debug HUD", aliases = new[] { "Developer HUD", "Debug UI", "Developer UI" }, enableMethod = Visuals.EnableDebugHUD, disableMethod = Visuals.DisableDebugHUD, toolTip = "Displays the developer debug HUD."},
 
-                new ButtonInfo { buttonText = "Info Watch", enableMethod = Visuals.WatchOn, method = Visuals.WatchStep, disableMethod = Visuals.WatchOff, toolTip = "Puts a watch on your hand that tells you the time and your FPS."},
+                new ButtonInfo { buttonText = "Info Watch", enabled = true, enableMethod = Visuals.WatchOn, method = Visuals.WatchStep, disableMethod = Visuals.WatchOff, toolTip = "Puts a watch on your hand that tells you the time and your FPS."},
                 new ButtonInfo { buttonText = "Leaderboard Info", enableMethod =() => UpdatePatch.enabled = true, method = Visuals.LeaderboardInfo, disableMethod =() => UpdatePatch.enabled = false, toolTip = "Shows info next to players' names on the leaderboard."},
 
                 new ButtonInfo { buttonText = "FPS Boost", aliases = new[] { "Low Quality" }, enableMethod =() => QualitySettings.globalTextureMipmapLimit = int.MaxValue, disableMethod =() => QualitySettings.globalTextureMipmapLimit = 1, toolTip = "Makes everything low quality in an attempt to boost your FPS."},
@@ -2118,111 +2102,11 @@ namespace iiMenu.Menu
             new[] // Detected Mods [43]
             {
                 new ButtonInfo { buttonText = "Exit Detected Mods", method =() => CurrentCategoryName = "Main", isTogglable = false, toolTip = "Returns you back to the main page."},
-
-                new ButtonInfo { buttonText = "Detected Auto Set Master Client", overlapText = "Auto Set Master Client", method = Detected.AutoSetMasterClient, detected = true, toolTip = "Automatically sets you as master client."},
-                new ButtonInfo { buttonText = "Detected Set Master Client Self", overlapText = "Set Master Client Self", method =() => PhotonNetwork.SetMasterClient(PhotonNetwork.LocalPlayer), isTogglable = false, detected = true, toolTip = "Sets you as master client."},
-                new ButtonInfo { buttonText = "Detected Set Master Client Gun", overlapText = "Set Master Client Gun", method = Detected.SetMasterClientGun, detected = true, toolTip = "Sets whoever your hand desires as master client."},
-                new ButtonInfo { buttonText = "Detected Set Master Client All", overlapText = "Set Master Client All", method = Detected.SetMasterClientAll, detected = true, toolTip = "Sets everyone in the room as master client."},
-                new ButtonInfo { buttonText = "Detected Set Master Client Aura", overlapText = "Set Master Client Aura", method = Detected.SetMasterClientAura, detected = true, toolTip = "Sets nearby players as master client."},
-                new ButtonInfo { buttonText = "Detected Set Master Client On Touch", overlapText = "Set Master Client On Touch", method = Detected.SetMasterClientOnTouch, detected = true, toolTip = "Sets players you touch as master client."},
-
-                new ButtonInfo { buttonText = "Detected Lag Gun", overlapText = "Lag Gun", method = Detected.LagGun, detected = true, toolTip = "Lags whoever your hand desires."},
-                new ButtonInfo { buttonText = "Detected Lag All", overlapText = "Lag All", method = Detected.LagAll, detected = true, toolTip = "Lags everyone in the room."},
-                new ButtonInfo { buttonText = "Detected Lag Aura", overlapText = "Lag Aura", method = Detected.LagAura, detected = true, toolTip = "Lags players nearby you."},
-                new ButtonInfo { buttonText = "Detected Lag On Touch", overlapText = "Lag On Touch", method = Detected.LagOnTouch, detected = true, toolTip = "Lags players that you touch."},
-
-                new ButtonInfo { buttonText = "Detected Crash Gun", overlapText = "Crash Gun", method = Detected.CrashGun, detected = true, toolTip = "Crashes whoever your hand desires."},
-                new ButtonInfo { buttonText = "Detected Crash All", overlapText = "Crash All", method = Detected.CrashAll, detected = true, toolTip = "Crashes everyone in the room."},
-                new ButtonInfo { buttonText = "Detected Crash Aura", overlapText = "Crash Aura", method = Detected.CrashAura, detected = true, toolTip = "Crashes players nearby you."},
-                new ButtonInfo { buttonText = "Detected Crash On Touch", overlapText = "Crash On Touch", method = Detected.CrashOnTouch, detected = true, toolTip = "Crashes players that you touch."},
-                new ButtonInfo { buttonText = "Detected Crash When Touched", overlapText = "Crash When Touched", method = Detected.CrashWhenTouched, detected = true, toolTip = "Crashes players that touch you."},
-
-                new ButtonInfo { buttonText = "Detected Mute Gun", overlapText = "Mute Gun", method = Detected.MuteGun, detected = true, toolTip = "Mutes whoever your hand desires."},
-                new ButtonInfo { buttonText = "Detected Mute All", overlapText = "Mute All", method = Detected.MuteAll, detected = true, toolTip = "Mutes everyone in the room."},
-                new ButtonInfo { buttonText = "Detected Mute Aura", overlapText = "Mute Aura", method = Detected.MuteAura, detected = true, toolTip = "Mutes players nearby you."},
-                new ButtonInfo { buttonText = "Detected Mute On Touch", overlapText = "Mute On Touch", method = Detected.MuteOnTouch, detected = true, toolTip = "Mutes players that you touch."},
-
-                new ButtonInfo { buttonText = "Detected Ghost Gun", overlapText = "Ghost Gun", method = Detected.GhostGun, detected = true, toolTip = "Freezes whoever your hand desires, making them a ghost."},
-                new ButtonInfo { buttonText = "Detected Ghost All", overlapText = "Ghost All", method = Detected.GhostAll, isTogglable = false, detected = true, toolTip = "Freezes everyone, making them a ghost."},
-                new ButtonInfo { buttonText = "Detected Ghost Aura", overlapText = "Ghost Aura", method = Detected.GhostAura, isTogglable = true, detected = true, toolTip = "Freezes nearby players, making them a ghost."},
-                new ButtonInfo { buttonText = "Detected Ghost On Touch", overlapText = "Ghost On Touch", method = Detected.GhostOnTouch, detected = true, toolTip = "Freezes players you touch, making them a ghost."},
-                
-                new ButtonInfo { buttonText = "Detected Unghost Gun", overlapText = "Unghost Gun", method = Detected.UnghostGun, detected = true, toolTip = "Unfreezes whoever your hand desires, making them no longer a ghost."},
-                new ButtonInfo { buttonText = "Detected Unghost All", overlapText = "Unghost All", method = Detected.UnghostAll, isTogglable = false, detected = true, toolTip = "Unfreezes everyone, making them no longer a ghost."},
-                new ButtonInfo { buttonText = "Detected Unghost Aura", overlapText = "Unghost Aura", method = Detected.UnghostAura, isTogglable = true, detected = true, toolTip = "Unfreezes players nearby you, making them no longer a ghost."},
-                new ButtonInfo { buttonText = "Detected Unghost On Touch", overlapText = "Unghost On Touch", method = Detected.UnghostOnTouch, detected = true, toolTip = "Unfreeze players that you touch, making them no longer a ghost."},
-
-                new ButtonInfo { buttonText = "Detected Spam Ghost Gun", overlapText = "Spam Ghost Gun", method =() => { Detected.GhostGun(); Detected.UnghostGun(); }, detected = true, toolTip = "Spam makes whoever your hand desires freeze and unfreeze again. Ghost and Unghost."},
-                new ButtonInfo { buttonText = "Detected Spam Ghost All", overlapText = "Spam Ghost All", method =() => { Detected.GhostAll(); Detected.UnghostAll(); }, isTogglable = false, detected = true, toolTip = "Spam makes everyone freeze and unfreeze again. Ghost and Unghost."},
-                new ButtonInfo { buttonText = "Detected Spam Ghost Aura", overlapText = "Spam Ghost Aura", method =() => { Detected.GhostAura(); Detected.UnghostAura(); }, isTogglable = true, detected = true, toolTip = "Spam makes players nearby freeze and unfreeze again. Ghost and Unghost."},
-                new ButtonInfo { buttonText = "Detected Spam Ghost On Touch", overlapText = "Spam Ghost On Touch", method =() => { Detected.GhostOnTouch(); Detected.UnghostOnTouch(); }, detected = true, toolTip = "Spam makes players you touch freeze and unfreeze again. Ghost and Unghost."},
-
-                new ButtonInfo { buttonText = "Leaderboard Ghost", method = Detected.LeaderboardGhost, disableMethod = Detected.DisableLeaderboardGhost, detected = true, toolTip = "Ghosts players when you report them on the leaderboard."},
-                new ButtonInfo { buttonText = "Leaderboard Mute", method = Detected.LeaderboardMute, detected = true, toolTip = "Mutes players when you mute them on the leaderboard."},
-                
-                new ButtonInfo { buttonText = "Detected Isolate Gun", overlapText = "Isolate Gun", method = Detected.IsolateGun, detected = true, toolTip = "Makes whoever your hand desires only be able to see you."},
-                new ButtonInfo { buttonText = "Detected Isolate All", overlapText = "Isolate All", method = Detected.IsolateAll, isTogglable = false, detected = true, toolTip = "Makes everyone only be able to see you."},
-                new ButtonInfo { buttonText = "Detected Isolate Aura", overlapText = "Isolate Aura", method = Detected.IsolateAura, detected = true, toolTip = "Makes players nearby only be able to see you."},
-                new ButtonInfo { buttonText = "Detected Isolate On Touch", overlapText = "Isolate On Touch", method = Detected.IsolateOnTouch, detected = true, toolTip = "Players that you touch will only be able to see you."},
-
-                new ButtonInfo { buttonText = "Detected Change Name Gun", overlapText = "Change Name Gun", enableMethod = Detected.PromptNameChange, method = Detected.ChangeNameGun, detected = true, toolTip = "Changes the name of whoever your hand desires."},
-                new ButtonInfo { buttonText = "Detected Change Name All", overlapText = "Change Name All", enableMethod = Detected.PromptNameChange, method = Detected.ChangeNameAll, detected = true, toolTip = "Changes the name of everyone in the room."},
-                new ButtonInfo { buttonText = "Detected Change Name Aura", overlapText = "Change Name Aura", enableMethod = Detected.PromptNameChange, method = Detected.ChangeNameAura, detected = true, toolTip = "Changes the name of whoever is near you."},
-                new ButtonInfo { buttonText = "Detected Change Name On Touch", overlapText = "Change Name On Touch", enableMethod = Detected.PromptNameChange, method = Detected.ChangeNameOnTouch, detected = true, toolTip = "Changes the name of players that you touch."},
-
-                new ButtonInfo { buttonText = "Detected Ban Gun", overlapText = "Ban Gun", method = Detected.BanGun, detected = true, toolTip = "Changes the name of whoever your hand desires to a banned name."},
-                new ButtonInfo { buttonText = "Detected Ban All", overlapText = "Ban All", method = Detected.BanGun, detected = true, toolTip = "Changes the name of everyone in the room to a banned name."},
-                new ButtonInfo { buttonText = "Detected Ban Aura", overlapText = "Ban Aura", method = Detected.BanAura, detected = true, toolTip = "Changes the name of whoever is near you to a banned name."},
-                new ButtonInfo { buttonText = "Detected Ban On Touch", overlapText = "Ban On Touch", method = Detected.BanOnTouch, detected = true, toolTip = "Changes the name of players that you touch to a banned name."},
-
-                new ButtonInfo { buttonText = "Bypass Mod Checkers Gun", method = Detected.BypassModCheckersGun, detected = true, toolTip = "Tells players using mod checkers that whoever your hand desires has no mods."},
-                new ButtonInfo { buttonText = "Bypass Mod Checkers All", method = Detected.BypassModCheckersAll, isTogglable = false, detected = true, toolTip = "Tells players using mod checkers that no one has no mods."},
-                new ButtonInfo { buttonText = "Bypass Mod Checkers Aura", method = Detected.BypassModCheckersAura, detected = true, toolTip = "Tells players using mod checkers that players nearby you have no mods."},
-                new ButtonInfo { buttonText = "Bypass Mod Checkers On Touch", method = Detected.BypassModCheckersOnTouch, detected = true, toolTip = "Tells players using mod checkers that players you touch have no mods."},
-
-                new ButtonInfo { buttonText = "Break Mod Checkers Gun", method = Detected.BreakModCheckersGun, detected = true, toolTip = "Tells players using mod checkers that whoever your hand desires has every mod."},
-                new ButtonInfo { buttonText = "Break Mod Checkers All", method = Detected.BreakModCheckersAll, isTogglable = false, detected = true, toolTip = "Tells players using mod checkers that everyone has every mod."},
-                new ButtonInfo { buttonText = "Break Mod Checkers Aura", method = Detected.BreakModCheckersAura, detected = true, toolTip = "Tells players using mod checkers that players nearby you have every mod."},
-                new ButtonInfo { buttonText = "Break Mod Checkers On Touch", method = Detected.BreakModCheckersOnTouch, detected = true, toolTip = "Tells players using mod checkers that players you touch have every mod."},
-
-                new ButtonInfo { buttonText = "Gamemode Include Gun", method = Detected.GamemodeIncludeGun, detected = true, toolTip = "Includes whoever your hand desires from the current gamemode."},
-                new ButtonInfo { buttonText = "Gamemode Include All", method = Detected.GamemodeIncludeAll, isTogglable = false, detected = true, toolTip = "Includes everyone from the current gamemode."},
-                new ButtonInfo { buttonText = "Gamemode Include Aura", method = Detected.GamemodeIncludeAura, detected = true, toolTip = "Includes players nearby you from the current gamemode."},
-                new ButtonInfo { buttonText = "Gamemode Include On Touch", method = Detected.GamemodeIncludeOnTouch, detected = true, toolTip = "Includes players you touch from the current gamemode."},
-
-                new ButtonInfo { buttonText = "Gamemode Exclude Gun", method = Detected.GamemodeExcludeGun, detected = true, toolTip = "Excludes whoever your hand desires from the current gamemode."},
-                new ButtonInfo { buttonText = "Gamemode Exclude All", method = Detected.GamemodeExcludeAll, isTogglable = false, detected = true, toolTip = "Excludes everyone from the current gamemode."},
-                new ButtonInfo { buttonText = "Gamemode Exclude Aura", method = Detected.GamemodeExcludeAura, detected = true, toolTip = "Excludes players nearby you from the current gamemode."},
-                new ButtonInfo { buttonText = "Gamemode Exclude On Touch", method = Detected.GamemodeExcludeOnTouch, detected = true, toolTip = "Excludes players you touch from the current gamemode."},
-                
-                new ButtonInfo { buttonText = "Break Network Triggers", method = Detected.BreakNetworkTriggers, isTogglable = false, detected = true, toolTip = "Breaks the network triggers."},
-                new ButtonInfo { buttonText = "Kick Network Triggers", method = Detected.KickNetworkTriggers, isTogglable = false, detected = true, toolTip = "Makes all network triggers kick you."},
-
-                new ButtonInfo { buttonText = "Spaz Gamemode", method = Detected.SpazGamemode, detected = true, toolTip = "Rapidly changes the gamemode."},
-                new ButtonInfo { buttonText = "Break Gamemode", enableMethod =() => Detected.BreakGamemode(true), disableMethod =() => Detected.BreakGamemode(false), detected = true, toolTip = "Breaks the current gamemode."},
-                new ButtonInfo { buttonText = "Change Gamemode to None", method =() => Detected.ChangeGamemode(GorillaGameModes.GameModeType.None), isTogglable = false, detected = true, toolTip = "Changes the gamemode to error/none."},
-                new ButtonInfo { buttonText = "Change Gamemode to Count", method =() => Detected.ChangeGamemode(GorillaGameModes.GameModeType.Count), isTogglable = false, detected = true, toolTip = "Changes the gamemode to count."},
-                new ButtonInfo { buttonText = "Change Gamemode to Casual", method =() => Detected.ChangeGamemode(GorillaGameModes.GameModeType.Casual), isTogglable = false, detected = true, toolTip = "Changes the gamemode to casual."},
-                new ButtonInfo { buttonText = "Change Gamemode to Infection", method =() => Detected.ChangeGamemode(GorillaGameModes.GameModeType.Infection), isTogglable = false, detected = true, toolTip = "Changes the gamemode to infection."},
-                new ButtonInfo { buttonText = "Change Gamemode to Competitive Infection", method =() => Detected.ChangeGamemode(GorillaGameModes.GameModeType.InfectionCompetitive), isTogglable = false, detected = true, toolTip = "Changes the gamemode to competitive infection."},
-                new ButtonInfo { buttonText = "Change Gamemode to Super Infection", method =() => Detected.ChangeGamemode(GorillaGameModes.GameModeType.SuperInfect), isTogglable = false, detected = true, toolTip = "Changes the gamemode to super infection."},
-                new ButtonInfo { buttonText = "Change Gamemode to Super Casual", method =() => Detected.ChangeGamemode(GorillaGameModes.GameModeType.SuperCasual), isTogglable = false, detected = true, toolTip = "Changes the gamemode to super casual."},
-                new ButtonInfo { buttonText = "Change Gamemode to Hunt", method =() => Detected.ChangeGamemode(GorillaGameModes.GameModeType.HuntDown), isTogglable = false, detected = true, toolTip = "Changes the gamemode to hunt."},
-                new ButtonInfo { buttonText = "Change Gamemode to Paintbrawl", method =() => Detected.ChangeGamemode(GorillaGameModes.GameModeType.Paintbrawl), isTogglable = false, detected = true, toolTip = "Changes the gamemode to paintbrawl."},
-                new ButtonInfo { buttonText = "Change Gamemode to Ambush", method =() => Detected.ChangeGamemode(GorillaGameModes.GameModeType.Ambush), isTogglable = false, detected = true, toolTip = "Changes the gamemode to ambush."},
-                new ButtonInfo { buttonText = "Change Gamemode to Ghost Tag", method =() => Detected.ChangeGamemode(GorillaGameModes.GameModeType.Ghost), isTogglable = false, detected = true, toolTip = "Changes the gamemode to ghost tag."},
-                new ButtonInfo { buttonText = "Change Gamemode to Guardian", method =() => Detected.ChangeGamemode(GorillaGameModes.GameModeType.Guardian), isTogglable = false, detected = true, toolTip = "Changes the gamemode to guardian."},
-                new ButtonInfo { buttonText = "Change Gamemode to Freeze Tag", method =() => Detected.ChangeGamemode(GorillaGameModes.GameModeType.FreezeTag), isTogglable = false, detected = true, toolTip = "Changes the gamemode to freeze tag."},
-                new ButtonInfo { buttonText = "Change Gamemode to Prop Hunt", method =() => Detected.ChangeGamemode(GorillaGameModes.GameModeType.PropHunt), isTogglable = false, detected = true, toolTip = "Changes the gamemode to prop hunt."},
-                new ButtonInfo { buttonText = "Change Gamemode to Custom", method =() => Detected.ChangeGamemode(GorillaGameModes.GameModeType.Custom), isTogglable = false, detected = true, toolTip = "Changes the gamemode to custom."}
             },
 
             new[] // Detected Settings [44]
             {
                 new ButtonInfo { buttonText = "Exit Detected Settings", method =() => CurrentCategoryName = "Main", isTogglable = false, toolTip = "Returns you back to the main page."},
-
-                new ButtonInfo { buttonText = "Switch to Modded Gamemode", enableMethod =() => Detected.moddedGamemode = true, disableMethod =() => Detected.moddedGamemode = false, toolTip = "Automatically sets the gamemode as modded when changed."},
-                new ButtonInfo { buttonText = "Isolate Others", toolTip = "Allows you to still be seen when isolating players."}
             },
 
             new[] // Achievements [45]
@@ -2245,6 +2129,29 @@ namespace iiMenu.Menu
             {
                 new ButtonInfo { buttonText = "Exit Patreon Settings", method =() => CurrentCategoryName = "Main", isTogglable = false, toolTip = "Returns you back to the main page."},
                 new ButtonInfo { buttonText = "Disable Patreon Indicators", enableMethod =() => PatreonManager.IndicatorsEnabled = false, disableMethod =() => PatreonManager.IndicatorsEnabled = true, toolTip = "Disables the memberships that appear above people's head with the menu."}
+            },
+
+            new[] // Gun Settings [49]
+            {
+                new ButtonInfo { buttonText = "Exit Gun Settings", method =() => CurrentCategoryName = "Settings", isTogglable = false, toolTip = "Returns you back to the settings menu."},
+
+                new ButtonInfo { buttonText = "Change Gun Variation", overlapText = "Change Gun Variation <color=grey>[</color><color=green>Default</color><color=grey>]</color>", method =() => Settings.ChangeGunVariation(), enableMethod =() => Settings.ChangeGunVariation(), disableMethod =() => Settings.ChangeGunVariation(false), incremental = true, isTogglable = false, toolTip = "Changes the look of the gun."},
+                new ButtonInfo { buttonText = "Change Gun Direction", overlapText = "Change Gun Direction <color=grey>[</color><color=green>Default</color><color=grey>]</color>", method =() => Settings.ChangeGunDirection(), enableMethod =() => Settings.ChangeGunDirection(), disableMethod =() => Settings.ChangeGunDirection(false), incremental = true, isTogglable = false, toolTip = "Changes the direction of the gun."},
+                new ButtonInfo { buttonText = "Change Gun Line Quality", overlapText = "Change Gun Line Quality <color=grey>[</color><color=green>Normal</color><color=grey>]</color>", method =() => Settings.ChangeGunLineQuality(), enableMethod =() => Settings.ChangeGunLineQuality(), disableMethod =() => Settings.ChangeGunLineQuality(false), incremental = true, isTogglable = false, toolTip = "Changes the amount of points on your gun."},
+
+                new ButtonInfo { buttonText = "Gun Sounds", enableMethod =() => GunSounds = true, disableMethod =() => GunSounds = false, toolTip = "Plays laser sounds when interacting with the gun."},
+                new ButtonInfo { buttonText = "Gun Vibrations", enableMethod =() => GunVibrations = true, disableMethod =() => GunVibrations = false, toolTip = "Vibrates your controller when interacting with the gun."},
+                new ButtonInfo { buttonText = "Gun Particles", enableMethod =() => GunParticles = true, disableMethod =() => GunParticles = false, toolTip = "Gives the gun particles when you shoot it."},
+
+                new ButtonInfo { buttonText = "Swap Gun Hand", enableMethod =() => SwapGunHand = true, disableMethod =() => SwapGunHand = false, toolTip = "Swaps the hand gun mods work with."},
+                new ButtonInfo { buttonText = "Gripless Guns", enableMethod =() => GriplessGuns = true, disableMethod =() => GriplessGuns = false, toolTip = "Forces your grip to be held for guns."},
+                new ButtonInfo { buttonText = "Triggerless Guns", enableMethod =() => TriggerlessGuns = true, disableMethod =() => TriggerlessGuns = false, toolTip = "Forces your trigger to be held for guns."},
+                new ButtonInfo { buttonText = "Hard Gun Lock", enableMethod =() => HardGunLocks = true, disableMethod =() => HardGunLocks = false, toolTip = "Locks the guns even when letting go of grip until you press <color=green>B</color>."},
+
+                new ButtonInfo { buttonText = "Small Gun Pointer", enableMethod =() => smallGunPointer = true, disableMethod =() => smallGunPointer = false, toolTip = "Makes the ball at the end of every gun mod smaller."},
+                new ButtonInfo { buttonText = "Smooth Gun Pointer", enableMethod =() => SmoothGunPointer = true, disableMethod =() => SmoothGunPointer = false, toolTip = "Makes the ball at the end of every gun mod smoother."},
+                new ButtonInfo { buttonText = "Disable Gun Pointer", enableMethod =() => disableGunPointer = true, disableMethod =() => disableGunPointer = false, toolTip = "Disables the ball at the end of every gun mod."},
+                new ButtonInfo { buttonText = "Disable Gun Line", enableMethod =() => disableGunLine = true, disableMethod =() => disableGunLine = false, toolTip = "Disables the gun from your hand to the end of every gun mod."}
             }
         };
 
@@ -2292,7 +2199,8 @@ namespace iiMenu.Menu
             "Achievements",
             "Mod List",
             "Patreon Mods",
-            "Patreon Settings"
+            "Patreon Settings",
+            "Gun Settings"
         };
 
         public static int _currentCategoryIndex;

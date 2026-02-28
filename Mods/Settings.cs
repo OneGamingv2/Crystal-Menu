@@ -593,11 +593,74 @@ namespace iiMenu.Mods
             }
         }
 
-        private static readonly float[] spectatePovSizes = { 0.15f, 0.2f, 0.25f, 0.3f, 0.35f, 0.4f, 0.45f };
-        private static int spectatePovSizeIndex = 1;
+        private static GameObject spectateOverlayQuad;
+
+        private class SpectateOverlayFollower : MonoBehaviour
+        {
+            public RenderTexture FeedTexture;
+            private Material _overlayMat;
+
+            private void Start()
+            {
+                Shader sh = Shader.Find("Unlit/Texture")
+                          ?? Shader.Find("Universal Render Pipeline/Unlit")
+                          ?? Shader.Find("Sprites/Default");
+                if (sh != null)
+                {
+                    _overlayMat = new Material(sh);
+                    _overlayMat.mainTexture = FeedTexture;
+                    if (_overlayMat.HasProperty("_MainTex")) _overlayMat.SetTexture("_MainTex", FeedTexture);
+                    if (_overlayMat.HasProperty("_BaseMap")) _overlayMat.SetTexture("_BaseMap", FeedTexture);
+                    _overlayMat.color = Color.white;
+                }
+                RebuildQuad();
+            }
+
+            private void LateUpdate()
+            {
+                if (menuBackground != null
+                    && (spectateOverlayQuad == null
+                        || spectateOverlayQuad.transform.parent != menuBackground.transform))
+                {
+                    RebuildQuad();
+                }
+            }
+
+            private void RebuildQuad()
+            {
+                if (spectateOverlayQuad != null)
+                    Object.Destroy(spectateOverlayQuad);
+                spectateOverlayQuad = null;
+
+                if (menuBackground == null || _overlayMat == null)
+                    return;
+
+                spectateOverlayQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                Object.Destroy(spectateOverlayQuad.GetComponent<MeshCollider>());
+                spectateOverlayQuad.name = "iiMenu_SpectateOverlay";
+                spectateOverlayQuad.transform.SetParent(menuBackground.transform, false);
+                // The user-facing face of menuBackground is at local X = +0.5.
+                // Place the quad slightly in front of that face.
+                spectateOverlayQuad.transform.localPosition = new Vector3(0.52f, 0f, 0f);
+                // Quad's +Z is its normal; rotate -90Â° around Y so the normal faces +X (toward user).
+                spectateOverlayQuad.transform.localRotation = Quaternion.Euler(0f, -90f, 0f);
+                float sz = spectatePovSizes[spectatePovSizeIndex];
+                spectateOverlayQuad.transform.localScale = new Vector3(sz, sz, 1f);
+                spectateOverlayQuad.GetComponent<Renderer>().material = _overlayMat;
+            }
+
+            private void OnDestroy()
+            {
+                if (spectateOverlayQuad != null) { Object.Destroy(spectateOverlayQuad); spectateOverlayQuad = null; }
+                if (_overlayMat != null) { Object.Destroy(_overlayMat); _overlayMat = null; }
+            }
+        }
+
+        private static readonly float[] spectatePovSizes = { 0.7f, 0.8f, 0.9f, 0.94f, 1.0f };
+        private static int spectatePovSizeIndex = 3;
 
         private static string GetSpectatePovSizeLabel() =>
-            $"x{Mathf.RoundToInt(spectatePovSizes[spectatePovSizeIndex] / 0.2f * 100f)}%";
+            $"{Mathf.RoundToInt(spectatePovSizes[spectatePovSizeIndex] * 100f)}%";
 
         public static void ChangeSpectatePovSize(bool increment = true)
         {
@@ -611,8 +674,9 @@ namespace iiMenu.Mods
             else if (spectatePovSizeIndex < 0)
                 spectatePovSizeIndex = spectatePovSizes.Length - 1;
 
-            float selectedSize = spectatePovSizes[spectatePovSizeIndex];
-            Main.promptImageSizeOverride = new Vector2(selectedSize, selectedSize);
+            float sz = spectatePovSizes[spectatePovSizeIndex];
+            if (spectateOverlayQuad != null)
+                spectateOverlayQuad.transform.localScale = new Vector3(sz, sz, 1f);
 
             ButtonInfo sizeButton = Buttons.GetIndex("Change Spectate POV Size");
             if (sizeButton != null)
@@ -627,6 +691,12 @@ namespace iiMenu.Mods
                 spectateCameraObject = null;
             }
 
+            if (spectateOverlayQuad != null)
+            {
+                Object.Destroy(spectateOverlayQuad);
+                spectateOverlayQuad = null;
+            }
+
             if (spectateRenderTexture != null)
             {
                 spectateRenderTexture.Release();
@@ -635,8 +705,6 @@ namespace iiMenu.Mods
             }
 
             currentSpectateRig = null;
-            promptMaterial = null;
-            Main.promptImageSizeOverride = null;
         }
 
         public static void SpectatePlayer(VRRig rig)
@@ -696,35 +764,12 @@ namespace iiMenu.Mods
             spectateCameraObject.transform.position = targetHead.position + targetHead.TransformDirection(followBehaviour.LocalOffset);
             spectateCameraObject.transform.rotation = targetHead.rotation;
 
-            Shader spectateShader = Shader.Find("Unlit/Texture")
-                                  ?? Shader.Find("Universal Render Pipeline/Unlit")
-                                  ?? Shader.Find("UI/Default")
-                                  ?? Shader.Find("Sprites/Default");
-
-            if (spectateShader == null)
-            {
-                NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> Could not create spectate material.");
-                StopSpectatingPlayer();
-                return;
-            }
-
-            promptMaterial = new Material(spectateShader)
-            {
-                mainTexture = spectateRenderTexture,
-                color = Color.white
-            };
-
-            if (promptMaterial.HasProperty("_MainTex"))
-                promptMaterial.SetTexture("_MainTex", spectateRenderTexture);
-
-            if (promptMaterial.HasProperty("_BaseMap"))
-                promptMaterial.SetTexture("_BaseMap", spectateRenderTexture);
-
-            float selectedSize = spectatePovSizes[spectatePovSizeIndex];
-            Main.promptImageSizeOverride = new Vector2(selectedSize, selectedSize);
+            // Attach the overlay follower so the feed quad is maintained on the menu board.
+            SpectateOverlayFollower overlayFollower = spectateCameraObject.AddComponent<SpectateOverlayFollower>();
+            overlayFollower.FeedTexture = spectateRenderTexture;
 
             string targetName = GetPlayerFromVRRig(currentSpectateRig)?.NickName ?? "selected player";
-            PromptSingle($"Spectating {targetName}<spectate.mat>", StopSpectatingPlayer, "Stop");
+            NotificationManager.SendNotification($"<color=grey>[</color><color=green>SPECTATE</color><color=grey>]</color> Now spectating {targetName}. POV shown on menu board.");
         }
 
         public static void CategorySettings()
@@ -1021,12 +1066,12 @@ exit 0";
         {
             string[] languageNames = {
                 "English",
-                "Español",
-                "Français",
+                "Espaï¿½ol",
+                "Franï¿½ais",
                 "Deutsch",
                 "???",
                 "Italiano",
-                "Português",
+                "Portuguï¿½s",
                 "Nederlands",
                 "???????",
                 "Polski"
@@ -5443,6 +5488,13 @@ exit 0";
                 }
             }
 
+            // Hide unwanted pre-built sidebar tabs
+            foreach (string hiddenTab in new[] { "Master", "Overpowered", "Detected" })
+            {
+                Transform t = canvasTransform.Find("Main/Sidebar/Scroll View/Viewport/Content/" + hiddenTab);
+                if (t != null) t.gameObject.SetActive(false);
+            }
+
             foreach (GameObject tab in canvasTransform.Find("Main/Sidebar/Scroll View/Viewport/Content").Children())
             {
                 if (!tab.activeSelf)
@@ -5456,6 +5508,12 @@ exit 0";
                 tab.AddComponent<UIColorChanger>().colors = buttonColors[0];
                 tab.GetComponent<Button>().onClick.AddListener(() =>
                 {
+                    if (tab.name == "Experimental")
+                    {
+                        Buttons.CurrentCategoryName = "Experimental Mods";
+                        PlayButtonSound();
+                        return;
+                    }
                     Toggle(Buttons.buttons[Buttons.GetCategory("Main")].Where(button => button.buttonText.StartsWith(tab.name)).FirstOrDefault() ?? Buttons.GetIndex("Exit Settings"));
                     PlayButtonSound();
                 });
@@ -6497,8 +6555,30 @@ exit 0";
             return finaltext;
         }
 
-        public static string GetPreferencesDirectory() =>
-            Path.Combine(FileUtilities.GetGamePath(), "Crystal Menu");
+        private static string _resolvedPreferencesDirectory;
+
+        public static string GetPreferencesDirectory()
+        {
+            if (_resolvedPreferencesDirectory != null) return _resolvedPreferencesDirectory;
+
+            string gamePath = Path.Combine(FileUtilities.GetGamePath(), "Crystal Menu");
+            try
+            {
+                Directory.CreateDirectory(gamePath);
+                string testFile = Path.Combine(gamePath, ".wrtest");
+                File.WriteAllText(testFile, "");
+                File.Delete(testFile);
+                _resolvedPreferencesDirectory = gamePath;
+            }
+            catch
+            {
+                _resolvedPreferencesDirectory = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Crystal Menu");
+                LogManager.Log("Crystal Menu: game dir not writable, using AppData for preferences.");
+            }
+            return _resolvedPreferencesDirectory;
+        }
 
         public static string GetPreferencesFilePath() =>
             Path.Combine(GetPreferencesDirectory(), "iiMenu_Preferences.txt");
@@ -6508,10 +6588,18 @@ exit 0";
 
         public static void SavePreferences()
         {
-            string preferencesDirectory = GetPreferencesDirectory();
-            Directory.CreateDirectory(preferencesDirectory);
-
-            File.WriteAllText(GetPreferencesFilePath(), SavePreferencesToText());
+            try
+            {
+                string preferencesDirectory = GetPreferencesDirectory();
+                Directory.CreateDirectory(preferencesDirectory);
+                File.WriteAllText(GetPreferencesFilePath(), SavePreferencesToText());
+                NotificationManager.SendNotification("<color=grey>[</color><color=green>SAVED</color><color=grey>]</color> Preferences saved.");
+            }
+            catch (Exception ex)
+            {
+                NotificationManager.SendNotification($"<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> Failed to save: {ex.Message}");
+                LogManager.LogError("SavePreferences failed: " + ex.Message);
+            }
         }
 
         public static int loadingPreferencesFrame;
@@ -6519,7 +6607,8 @@ exit 0";
         {
             loadingPreferencesFrame = Time.frameCount;
 
-            Panic();
+            try { Panic(); } catch (Exception ex) { LogManager.LogError("Panic() failed during load: " + ex.Message); }
+
             string[] textData = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
 
             string[] activebuttons = textData.Length > 0
@@ -6528,18 +6617,21 @@ exit 0";
             for (int index = 0; index < activebuttons.Length; index++)
             {
                 if (!string.IsNullOrWhiteSpace(activebuttons[index]))
-                    Toggle(activebuttons[index]);
+                    try { Toggle(activebuttons[index]); } catch (Exception ex) { LogManager.LogError($"Toggle({activebuttons[index]}) failed during load: " + ex.Message); }
             }
 
             string[] favoritesarray = textData.Length > 1
                 ? textData[1].Split(new[] { ";;" }, StringSplitOptions.RemoveEmptyEntries)
                 : Array.Empty<string>();
-            favorites.Clear();
-            foreach (string favorite in favoritesarray)
+            try
             {
-                if (!string.IsNullOrWhiteSpace(favorite))
-                    favorites.Add(favorite);
-            }
+                favorites.Clear();
+                foreach (string favorite in favoritesarray)
+                {
+                    if (!string.IsNullOrWhiteSpace(favorite))
+                        favorites.Add(favorite);
+                }
+            } catch (Exception ex) { LogManager.LogError("Favorites load failed: " + ex.Message); }
 
             try
             {
@@ -6861,10 +6953,12 @@ exit 0";
 
                 string text = File.ReadAllText(preferencesFilePath);
                 LoadPreferencesFromText(text);
+                NotificationManager.SendNotification("<color=grey>[</color><color=cyan>LOADED</color><color=grey>]</color> Preferences loaded.");
             }
             catch (Exception e)
             {
                 LogManager.Log("Error loading preferences: " + e.Message);
+                NotificationManager.SendNotification($"<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> Preferences load error: {e.Message}");
             }
             finally
             {
