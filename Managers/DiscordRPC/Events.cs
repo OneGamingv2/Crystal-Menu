@@ -1,4 +1,4 @@
-﻿using iiMenu.Managers.DiscordRPC.Message;
+using iiMenu.Managers.DiscordRPC.Message;
 
 namespace iiMenu.Managers.DiscordRPC.Events
 {

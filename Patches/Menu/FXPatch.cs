@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-﻿using HarmonyLib;
+using HarmonyLib;
 using iiMenu.Menu;
 
 namespace iiMenu.Patches.Menu

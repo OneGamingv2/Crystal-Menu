@@ -1,4 +1,4 @@
-﻿using iiMenu.Managers.DiscordRPC.Converters;
+using iiMenu.Managers.DiscordRPC.Converters;
 using Valve.Newtonsoft.Json;
 using Valve.Newtonsoft.Json.Linq;
 

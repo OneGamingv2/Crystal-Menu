@@ -20,7 +20,7 @@
  */
 
 using HarmonyLib;
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 namespace iiMenu.Patches.Menu
 {

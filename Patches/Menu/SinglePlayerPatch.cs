@@ -21,7 +21,7 @@
 
 using HarmonyLib;
 using Photon.Pun;
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace iiMenu.Patches.Menu

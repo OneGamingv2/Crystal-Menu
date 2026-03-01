@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-﻿using GorillaLocomotion.Gameplay;
+using GorillaLocomotion.Gameplay;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.XR;

@@ -1,4 +1,4 @@
-﻿using iiMenu.Managers.DiscordRPC.Events;
+using iiMenu.Managers.DiscordRPC.Events;
 using iiMenu.Managers.DiscordRPC.Exceptions;
 using iiMenu.Managers.DiscordRPC.IO;
 using iiMenu.Managers.DiscordRPC.Logging;

@@ -424,6 +424,9 @@ namespace iiMenu.Menu
 
                 if (clickGUI)
                 {
+                    if (!XRSettings.isDeviceActive && UnityInput.Current.GetKeyDown(KeyCode.Q) && !inTextInput)
+                        clickGuiMenuOpen = !clickGuiMenuOpen;
+
                     bool allowInputToggle = XRSettings.isDeviceActive;
 
                     if (allowInputToggle && buttonCondition && !clickGuiToggleHeld)

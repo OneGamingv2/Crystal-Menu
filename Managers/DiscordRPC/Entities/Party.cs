@@ -1,4 +1,4 @@
-﻿using iiMenu.Managers.DiscordRPC.Helper;
+using iiMenu.Managers.DiscordRPC.Helper;
 using System;
 using Valve.Newtonsoft.Json;
 

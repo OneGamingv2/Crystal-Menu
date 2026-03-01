@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-﻿using GorillaNetworking;
+using GorillaNetworking;
 using HarmonyLib;
 using iiMenu.Classes.Menu;
 using iiMenu.Managers;

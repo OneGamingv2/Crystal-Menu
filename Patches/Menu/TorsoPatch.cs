@@ -21,7 +21,7 @@
 
 using HarmonyLib;
 using iiMenu.Mods;
-﻿using System;
+using System;
 using UnityEngine;
 using Random = UnityEngine.Random;
 

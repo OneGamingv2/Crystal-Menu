@@ -1,4 +1,4 @@
-﻿using iiMenu.Managers.DiscordRPC.Logging;
+using iiMenu.Managers.DiscordRPC.Logging;
 using System;
 
 namespace iiMenu.Managers.DiscordRPC.IO

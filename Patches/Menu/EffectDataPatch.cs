@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-﻿using GorillaLocomotion;
+using GorillaLocomotion;
 using HarmonyLib;
 using iiMenu.Menu;
 using Photon.Pun;

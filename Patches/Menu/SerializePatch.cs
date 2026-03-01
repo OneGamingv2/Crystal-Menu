@@ -22,7 +22,7 @@
 using HarmonyLib;
 using iiMenu.Managers;
 using Photon.Pun;
-﻿using System;
+using System;
 
 namespace iiMenu.Patches.Menu
 {

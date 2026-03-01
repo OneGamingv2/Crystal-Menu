@@ -1,4 +1,4 @@
-﻿using iiMenu.Managers.DiscordRPC.RPC.Payload;
+using iiMenu.Managers.DiscordRPC.RPC.Payload;
 using Valve.Newtonsoft.Json;
 
 namespace iiMenu.Managers.DiscordRPC.RPC.Commands

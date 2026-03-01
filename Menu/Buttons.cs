@@ -2152,6 +2152,21 @@ namespace iiMenu.Menu
                 new ButtonInfo { buttonText = "Smooth Gun Pointer", enableMethod =() => SmoothGunPointer = true, disableMethod =() => SmoothGunPointer = false, toolTip = "Makes the ball at the end of every gun mod smoother."},
                 new ButtonInfo { buttonText = "Disable Gun Pointer", enableMethod =() => disableGunPointer = true, disableMethod =() => disableGunPointer = false, toolTip = "Disables the ball at the end of every gun mod."},
                 new ButtonInfo { buttonText = "Disable Gun Line", enableMethod =() => disableGunLine = true, disableMethod =() => disableGunLine = false, toolTip = "Disables the gun from your hand to the end of every gun mod."}
+            },
+
+            new[] { // Experimental Mods [45]
+                new ButtonInfo { buttonText = "Exit Experimental Mods", method =() => CurrentCategoryName = "Main", isTogglable = false, toolTip = "Returns you back to the main page."},
+
+                new ButtonInfo { buttonText = "Teleport Tag All", method = Experimental.TeleportTagAll, isTogglable = false, toolTip = "Instantly teleports to each player and tags them one by one. Must be tagged."},
+                new ButtonInfo { buttonText = "Better FPS Boost", enableMethod = Experimental.BetterFPSBoost, disableMethod = Experimental.DisableBetterFPSBoost, toolTip = "Attempts to boost your FPS using experimental methods."},
+                new ButtonInfo { buttonText = "Fix Duplicate Buttons", method = Experimental.FixDuplicateButtons, isTogglable = false, toolTip = "Fixes any duplicate buttons that may have appeared in the menu."},
+                new ButtonInfo { buttonText = "Anti Kick", enableMethod = Experimental.OnlySerializeNecessary, disableMethod =() => SerializePatch.OverrideSerialization = null, toolTip = "Only networks the necessities to prevent getting kicked."},
+                new ButtonInfo { buttonText = "Safe Restart Game", method = Experimental.SafeRestartGame, isTogglable = false, toolTip = "Safely restarts the game."},
+                new ButtonInfo { buttonText = "Dump Sound Data", method = Experimental.DumpSoundData, isTogglable = false, toolTip = "Dumps sound data to your files."},
+                new ButtonInfo { buttonText = "Dump Cosmetic Data", method = Experimental.DumpCosmeticData, isTogglable = false, toolTip = "Dumps cosmetic data to your files."},
+                new ButtonInfo { buttonText = "Dump RPC Data", method = Experimental.DumpRPCData, isTogglable = false, toolTip = "Dumps RPC data to your files."},
+                new ButtonInfo { buttonText = "Copy Custom Gamemode", method = Experimental.CopyCustomGamemodeScript, isTogglable = false, toolTip = "Copies the custom gamemode script to your clipboard."},
+                new ButtonInfo { buttonText = "Copy Map ID", method = Experimental.CopyCustomMapID, isTogglable = false, toolTip = "Copies the current custom map ID to your clipboard."},
             }
         };
 
@@ -2200,7 +2215,8 @@ namespace iiMenu.Menu
             "Mod List",
             "Patreon Mods",
             "Patreon Settings",
-            "Gun Settings"
+            "Gun Settings",
+            "Experimental Mods"
         };
 
         public static int _currentCategoryIndex;

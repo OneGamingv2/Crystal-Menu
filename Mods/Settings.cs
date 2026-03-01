@@ -5397,7 +5397,7 @@ exit 0";
             }
 
             Transform canvasTransform = canvas.gameObject.transform;
-            canvasTransform.Find("Main").AddComponent<UIColorChanger>().colors = backgroundColor;
+            canvasTransform.Find("Main").AddComponent<UIColorChanger>().colors = new ExtGradient { colors = ExtGradient.GetSolidGradient(Color.clear) };
 
             TextMeshProUGUI sidebarTitle = canvasTransform.Find("Main/Sidebar/Title")?.GetComponent<TextMeshProUGUI>();
             if (sidebarTitle != null)

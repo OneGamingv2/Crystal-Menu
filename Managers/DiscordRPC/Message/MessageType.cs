@@ -1,4 +1,4 @@
-﻿
+
 namespace iiMenu.Managers.DiscordRPC.Message
 {
 	/// <summary>

@@ -1,4 +1,4 @@
-﻿using iiMenu.Managers.DiscordRPC.Converters;
+using iiMenu.Managers.DiscordRPC.Converters;
 using System;
 
 namespace iiMenu.Managers.DiscordRPC.RPC.Payload

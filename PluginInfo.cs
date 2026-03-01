@@ -26,7 +26,7 @@ namespace iiMenu
         public const string GUID = "org.iidk.gorillatag.iimenu";
         public const string Name = "Crystal Menu";
         public const string Description = "Created by @onegamingv2 with love <3";
-        public const string BuildTimestamp = "2026-02-28T17:01:27Z";
+        public const string BuildTimestamp = "2026-03-01T00:14:40Z";
         public const string Version = "1.0.0";
 
         public const string BaseDirectory = "iisStupidMenu";

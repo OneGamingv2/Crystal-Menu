@@ -1,4 +1,4 @@
-﻿using iiMenu.Managers.DiscordRPC.Exceptions;
+using iiMenu.Managers.DiscordRPC.Exceptions;
 using System;
 using System.Text;
 using Valve.Newtonsoft.Json;

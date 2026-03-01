@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Valve.Newtonsoft.Json;
 
 namespace iiMenu.Managers.DiscordRPC

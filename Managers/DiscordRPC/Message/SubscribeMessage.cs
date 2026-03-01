@@ -1,4 +1,4 @@
-﻿using iiMenu.Managers.DiscordRPC.RPC.Payload;
+using iiMenu.Managers.DiscordRPC.RPC.Payload;
 
 namespace iiMenu.Managers.DiscordRPC.Message
 {

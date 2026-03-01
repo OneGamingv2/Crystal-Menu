@@ -1,4 +1,4 @@
-﻿using Valve.Newtonsoft.Json;
+using Valve.Newtonsoft.Json;
 
 namespace iiMenu.Managers.DiscordRPC.Message
 {

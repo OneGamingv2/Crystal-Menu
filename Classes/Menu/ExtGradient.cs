@@ -21,7 +21,7 @@
 
 using iiMenu.Extensions;
 using iiMenu.Menu;
-﻿using System;
+using System;
 using System.Linq;
 using UnityEngine;
 using static iiMenu.Utilities.RandomUtilities;

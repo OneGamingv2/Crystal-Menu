@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-﻿using GorillaTagScripts.VirtualStumpCustomMaps;
+using GorillaTagScripts.VirtualStumpCustomMaps;
 using HarmonyLib;
 using iiMenu.Mods.CustomMaps;
 using Modio.Mods;

@@ -21,7 +21,7 @@
 
 using HarmonyLib;
 using Photon.Pun;
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace iiMenu.Patches.Menu
 {

@@ -1,4 +1,4 @@
-﻿namespace iiMenu.Managers.DiscordRPC
+namespace iiMenu.Managers.DiscordRPC
 {
 	/// <summary>
 	/// Rich Presence Display type
